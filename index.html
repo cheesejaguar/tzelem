@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tzelem — agents in your image, outcomes on your budget</title>
+  <meta name="description" content="Tzelem is a dynamic multi‑agent orchestration platform that builds AI teams in your image to deliver real work with enterprise‑grade control." />
+  <meta name="theme-color" content="#0b0f19" />
+  <!-- Open Graph -->
+  <meta property="og:title" content="Tzelem — agents in your image, outcomes on your budget" />
+  <meta property="og:description" content="Give Tzelem an objective and a budget; it assembles specialized agents, coordinates their workflows, and ships results with real‑time observability, auditability, and strict spend guardrails." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://your-username.github.io/tzelem" />
+  <meta property="og:image" content="https://your-username.github.io/tzelem/og-image.png" />
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Tzelem — agents in your image, outcomes on your budget" />
+  <meta name="twitter:description" content="Dynamic multi‑agent orchestration. Enterprise‑grade control. Real outcomes." />
+  <meta name="twitter:image" content="https://your-username.github.io/tzelem/og-image.png" />
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --bg-2: #0e1426;
+      --panel: #12192c;
+      --text: #e6e9f2;
+      --muted: #a7b0c0;
+      --brand: #7aa2ff;
+      --brand-2: #b18cff;
+      --success: #3ad29f;
+      --ring: rgba(122,162,255,.55);
+      --maxw: 1080px;
+      --radius: 18px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    @media (prefers-color-scheme: light) {
+      :root { --bg:#f7f9fc; --bg-2:#eef3ff; --panel:#ffffff; --text:#0b0f19; --muted:#5b6475; --ring:rgba(80,120,255,.4); }
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text); background: radial-gradient(1200px 600px at 80% -10%, rgba(177,140,255,.18), transparent 60%),
+                               radial-gradient(1000px 500px at -10% 10%, rgba(122,162,255,.18), transparent 60%),
+                               linear-gradient(180deg, var(--bg), var(--bg-2));
+      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: var(--maxw); margin-inline: auto; padding: 24px; }
+    header { position: sticky; top: 0; backdrop-filter: blur(8px); background: color-mix(in oklab, var(--bg) 75%, transparent); border-bottom: 1px solid color-mix(in oklab, var(--text) 12%, transparent); z-index: 10; }
+    .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: .3px; }
+    .logo { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 10px; background: linear-gradient(135deg, var(--brand), var(--brand-2)); box-shadow: var(--shadow); }
+    .links { display: flex; gap: 18px; align-items: center; }
+    .links a { opacity: .9; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #0b0f19; font-weight: 700; padding: 10px 16px; border-radius: 12px; box-shadow: var(--shadow); border: 1px solid color-mix(in oklab, var(--brand) 65%, var(--brand-2)); }
+    .btn.secondary { background: transparent; color: var(--text); border: 1px solid color-mix(in oklab, var(--text) 16%, transparent); box-shadow: none; }
+    .btn:hover { transform: translateY(-1px); }
+
+    /* Hero */
+    .hero { padding: 72px 24px 42px; position: relative; overflow: hidden; }
+    .hero .container { display: grid; gap: 14px; justify-items: start; text-align: left; }
+    .badge { display: inline-flex; gap: 10px; align-items: center; border: 1px solid color-mix(in oklab, var(--text) 16%, transparent); border-radius: 999px; padding: 6px 10px; font-size: 12.5px; color: var(--muted); background: color-mix(in oklab, var(--bg) 85%, transparent); }
+    .title { font-size: clamp(40px, 8vw, 72px); line-height: 1.02; letter-spacing: -0.02em; margin: 8px 0 8px; font-weight: 900; }
+    .gradient { background: linear-gradient(180deg, #fff, #c9d5ff 55%, #9bb2ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .subtitle { font-size: clamp(18px, 2.6vw, 22px); color: var(--muted); max-width: 68ch; }
+    .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+
+    /* Sections */
+    section { padding: 42px 24px; }
+    .card { background: color-mix(in oklab, var(--panel) 84%, transparent); border: 1px solid color-mix(in oklab, var(--text) 10%, transparent); border-radius: var(--radius); padding: clamp(18px, 3.5vw, 30px); box-shadow: var(--shadow); }
+    .grid { display: grid; gap: 18px; }
+    .grid.cols-3 { grid-template-columns: repeat(1, 1fr); }
+    @media (min-width: 840px) { .grid.cols-3 { grid-template-columns: repeat(3, 1fr); } }
+
+    .h2 { font-size: clamp(26px, 4vw, 36px); margin: 0 0 12px; }
+    .muted { color: var(--muted); }
+    .feature { display: grid; gap: 8px; align-content: start; }
+    .icon { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: color-mix(in oklab, var(--brand) 30%, transparent); border: 1px solid color-mix(in oklab, var(--brand) 40%, transparent); }
+
+    .ribbon { display:inline-block; padding:6px 10px; border-radius:10px; background: color-mix(in oklab, var(--success) 22%, transparent); border:1px solid color-mix(in oklab, var(--success) 38%, transparent); color: #0b0f19; font-weight: 700; }
+
+    .footer { padding: 36px 24px 60px; color: var(--muted); text-align: center; }
+    .tiny { font-size: 12px; }
+
+    /* Utilities */
+    .center { text-align:center; }
+    .right { text-align:right; }
+    .mt-0{ margin-top:0 } .mt-2{ margin-top:8px } .mt-4{ margin-top:16px } .mt-6{ margin-top:24px } .mt-8{ margin-top:32px }
+    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <a href="#top" class="brand" aria-label="Tzelem home">
+        <span class="logo" aria-hidden="true">Ẕ</span>
+        <span>Tzelem</span>
+      </a>
+      <nav class="links" aria-label="Primary">
+        <a href="#pitch">Pitch</a>
+        <a href="#how">How it works</a>
+        <a href="#hackathon">Hackathon</a>
+        <a href="#contact">Contact</a>
+        <a class="btn secondary" href="https://github.com/your-org/tzelem" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn" href="#demo">Watch the demo</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- HERO -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container">
+        <span class="badge" id="demo">YC Agents Hackathon • San Francisco • Live demo</span>
+        <h1 class="title" id="hero-title"><span class="gradient">Tzelem</span></h1>
+        <p class="subtitle">agents in your image, outcomes on your budget</p>
+        <div class="cta">
+          <a class="btn" href="#pitch" aria-label="Read the pitch">Read the pitch</a>
+          <a class="btn secondary" href="mailto:hello@tzelem.ai" aria-label="Email us">Contact</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- PITCH -->
+    <section id="pitch" aria-labelledby="pitch-title">
+      <div class="container grid">
+        <div class="card">
+          <h2 class="h2" id="pitch-title">The Pitch</h2>
+          <p class="mt-2">Tzelem—inspired by the ancient Aramaic word for “image”—is a dynamic multi-agent orchestration platform that builds AI teams in your image to deliver real work with enterprise-grade control. Give Tzelem an objective and a budget; it assembles specialized agents, coordinates their workflows, and ships results with real-time observability, auditability, and strict spend guardrails. Unlike single “copilot” tools, Tzelem scales from quick tasks to complex, cross-functional projects and slots cleanly into modern SaaS stacks with customizable policies, permissions, and data boundaries.</p>
+          <p class="mt-4">For enterprises, Tzelem is production-ready and fully customizable. For this hackathon, we’ll demo end-to-end execution: define a goal, cap spend, and watch an agent organization plan, collaborate, and deliver—while you steer like a CEO. With Tzelem, you don’t just have a personal assistant—you operate like a billion-dollar CEO with an on-demand staff that can do almost anything, safely, observably, and within budget.</p>
+          <p class="mt-4"><strong>Tzelem — agents in your image, outcomes on your budget.</strong></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS / FEATURES -->
+    <section id="how" aria-labelledby="how-title">
+      <div class="container">
+        <h2 class="h2" id="how-title">How it works</h2>
+        <p class="muted mt-2">Give Tzelem an objective and a budget. It assembles specialized agents, orchestrates workflows, and delivers results with full visibility and hard guardrails on spend.</p>
+        <div class="grid cols-3 mt-6">
+          <div class="card feature">
+            <span class="icon" aria-hidden="true">⏱</span>
+            <strong>Real-time observability</strong>
+            <span class="muted">Every decision, step, and cost—visible as it happens.</span>
+          </div>
+          <div class="card feature">
+            <span class="icon" aria-hidden="true">🧭</span>
+            <strong>Policy-driven control</strong>
+            <span class="muted">Customizable policies, permissions, and data boundaries.</span>
+          </div>
+          <div class="card feature">
+            <span class="icon" aria-hidden="true">🧾</span>
+            <strong>Auditability</strong>
+            <span class="muted">Traceable actions and artifacts for compliance and trust.</span>
+          </div>
+          <div class="card feature">
+            <span class="icon" aria-hidden="true">💸</span>
+            <strong>Strict spend guardrails</strong>
+            <span class="muted">Cap budgets up front; agents stay within the limit—no surprises.</span>
+          </div>
+          <div class="card feature">
+            <span class="icon" aria-hidden="true">📈</span>
+            <strong>Scales with scope</strong>
+            <span class="muted">From quick tasks to complex, cross‑functional projects.</span>
+          </div>
+          <div class="card feature">
+            <span class="icon" aria-hidden="true">🔌</span>
+            <strong>Fits your stack</strong>
+            <span class="muted">Modern SaaS integration with clean boundaries by design.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HACKATHON DEMO -->
+    <section id="hackathon" aria-labelledby="hack-title">
+      <div class="container grid">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <h2 class="h2" id="hack-title">Hackathon Demo</h2>
+            <span class="ribbon">End‑to‑end execution</span>
+          </div>
+          <p class="mt-2">Define a goal, cap spend, and watch an agent organization plan, collaborate, and deliver—while you steer like a CEO. Live demo coming soon.</p>
+          <div class="cta mt-4">
+            <a class="btn" href="#demo" aria-label="Watch the demo">Watch the demo</a>
+            <a class="btn secondary" href="https://github.com/your-org/tzelem" target="_blank" rel="noopener">Star on GitHub</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT / FOLLOW -->
+    <section id="contact" aria-labelledby="contact-title">
+      <div class="container grid">
+        <div class="card">
+          <h2 class="h2" id="contact-title">Stay in the loop</h2>
+          <p class="muted">Drop us a note or follow along as we ship.</p>
+          <div class="cta mt-4">
+            <a class="btn" href="mailto:hello@tzelem.ai?subject=Tzelem%20hackathon%20demo" aria-label="Email Tzelem">Email us</a>
+            <a class="btn secondary" href="https://x.com/yourhandle" target="_blank" rel="noopener" aria-label="Follow on X/Twitter">Follow on X</a>
+          </div>
+          <p class="tiny mt-6 muted">Replace placeholder links (GitHub, X, image) before publishing.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div>© <span id="yr"></span> Tzelem</div>
+      <div class="tiny mt-2">Built for a hackathon demo. This site uses no cookies and stores no personal data.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Smooth scroll for internal anchors
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('a[href^="#"]');
+      if (!a) return;
+      const id = a.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.pushState(null, '', '#' + id);
+      }
+    });
+    // Year in footer
+    document.getElementById('yr').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
