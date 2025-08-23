@@ -18,7 +18,6 @@ from typing import Any
 
 from browserbase import Browserbase
 from dotenv import load_dotenv
-
 # from kernel import Kernel
 # Load environment variables from .env file
 env_path = Path(__file__).parent.parent / ".env"
@@ -69,7 +68,11 @@ except ImportError as e:
 
 # Default test JSON configuration
 
+<<<<<<< HEAD
 global tts
+=======
+global tts 
+>>>>>>> 4dd1e2f (first commit)
 tts= OpenAITTSService(voice="nova")
 
 DEFAULT_JSON_CONFIG = {
@@ -302,7 +305,11 @@ async def browser_function(
                 logger.warning(f"⚠️  Error during browser session closure: {e}")
         
         # Clean up agent reference
+<<<<<<< HEAD
         if "browser_agent" in locals():
+=======
+        if 'browser_agent' in locals():
+>>>>>>> 4dd1e2f (first commit)
             del browser_agent
 
 
