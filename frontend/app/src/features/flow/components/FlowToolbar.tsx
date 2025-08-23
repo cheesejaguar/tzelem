@@ -13,6 +13,7 @@ import { useFlow } from "@/contexts/FlowContext";
 import { exportFlow, importFlow } from "../utils/flowExport";
 import { DailyCallFrame } from "@/components/DailyCallFrame";
 import { apiClient } from "@/lib/api";
+import { AuthButton } from "../../../../auth/AuthButton";
 
 interface VoiceInfo {
   room: string;
@@ -208,6 +209,11 @@ export function FlowToolbar() {
         >
           <Trash2 className="w-4 h-4" />
         </Button>
+
+        <div className="w-px h-6 bg-gray-200 mx-1" />
+
+        {/* Authentication */}
+        <AuthButton variant="outline" size="sm" className="h-9" />
 
         {/* Primary Action */}
         {!isCallActive ? (

@@ -1,14 +1,20 @@
-import { Workflow, Play, Key } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Workflow, Play, Key } from "lucide-react";
+import { Button } from "../ui/button";
+import { AuthButton } from "../../../auth/AuthButton";
 
 interface HeaderProps {
-  activeView: 'flow' | 'run' | 'secrets';
-  onViewChange: (view: 'flow' | 'run' | 'secrets') => void;
+  activeView: "flow" | "run" | "secrets";
+  onViewChange: (view: "flow" | "run" | "secrets") => void;
   onExportFlow?: () => void;
   onStartRun?: () => void;
 }
 
-export function Header({ activeView, onViewChange, onExportFlow, onStartRun }: HeaderProps) {
+export function Header({
+  activeView,
+  onViewChange,
+  onExportFlow,
+  onStartRun,
+}: HeaderProps) {
   return (
     <header className="header">
       <div className="container">
@@ -17,40 +23,41 @@ export function Header({ activeView, onViewChange, onExportFlow, onStartRun }: H
             <Workflow className="icon-large" />
             <span>Tzelem</span>
           </div>
-          
+
           <div className="nav-links">
             <Button
-              variant={activeView === 'flow' ? 'default' : 'ghost'}
+              variant={activeView === "flow" ? "default" : "ghost"}
               size="sm"
-              onClick={() => onViewChange('flow')}
+              onClick={() => onViewChange("flow")}
               className="gap-2"
             >
               <Workflow className="icon-small" />
               Flow Builder
             </Button>
-            
+
             <Button
-              variant={activeView === 'run' ? 'default' : 'ghost'}
+              variant={activeView === "run" ? "default" : "ghost"}
               size="sm"
-              onClick={() => onViewChange('run')}
+              onClick={() => onViewChange("run")}
               className="gap-2"
             >
               <Play className="icon-small" />
               Run Console
             </Button>
-            
+
             <Button
-              variant={activeView === 'secrets' ? 'default' : 'ghost'}
+              variant={activeView === "secrets" ? "default" : "ghost"}
               size="sm"
-              onClick={() => onViewChange('secrets')}
+              onClick={() => onViewChange("secrets")}
               className="gap-2"
             >
               <Key className="icon-small" />
               Secrets
             </Button>
           </div>
-          
-          <div className="flex items-center gap-4">
+
+          <div className="flex items-center gap-3">
+            <AuthButton variant="outline" size="sm" />
             <Button variant="outline" size="sm" onClick={onExportFlow}>
               Export Flow
             </Button>
@@ -62,4 +69,4 @@ export function Header({ activeView, onViewChange, onExportFlow, onStartRun }: H
       </div>
     </header>
   );
-} 
+}
