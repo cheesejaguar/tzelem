@@ -206,6 +206,47 @@
         max-width: 600px;
         margin-left: auto;
         margin-right: auto;
+        min-height: 32px;
+      }
+
+      /* Text Generation Effect */
+      .text-generate-word {
+        display: inline-block;
+        opacity: 0;
+        filter: blur(10px);
+        animation: fadeInWord 0.8s ease-out forwards;
+      }
+
+      @keyframes fadeInWord {
+        0% {
+          opacity: 0;
+          filter: blur(10px);
+          transform: translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          filter: blur(0px);
+          transform: translateY(0px);
+        }
+      }
+
+      .cursor-blink {
+        display: inline-block;
+        background-color: var(--text);
+        margin-left: 2px;
+        width: 2px;
+        animation: blink 1s infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+        51%,
+        100% {
+          opacity: 0;
+        }
       }
 
       .hero-cta {
@@ -480,8 +521,8 @@
             YC Agents Hackathon • San Francisco • Live demo
           </div>
           <h1 class="hero-title">Tzelem</h1>
-          <p class="hero-subtitle">
-            once voice command to build a team of agents
+          <p class="hero-subtitle" id="text-generate">
+            <!-- Text will be generated here -->
           </p>
           <div class="hero-cta">
             <a href="#pitch" class="btn btn-primary">Read the pitch</a>
@@ -659,6 +700,80 @@
             });
           }
         });
+      });
+
+      // Text Generation Effect
+      function createTextGenerateEffect(elementId, text, options = {}) {
+        const {
+          duration = 100, // Duration between each word
+          className = "text-generate-word",
+          showCursor = true,
+          cursorDuration = 2000, // How long to show cursor after completion
+        } = options;
+
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        const words = text.split(" ");
+        element.innerHTML = "";
+
+        // Add cursor initially
+        if (showCursor) {
+          const cursor = document.createElement("span");
+          cursor.className = "cursor-blink";
+          cursor.innerHTML = "&nbsp;";
+          element.appendChild(cursor);
+        }
+
+        words.forEach((word, index) => {
+          setTimeout(() => {
+            // Remove cursor temporarily
+            const cursor = element.querySelector(".cursor-blink");
+            if (cursor) cursor.remove();
+
+            // Add the word
+            const wordSpan = document.createElement("span");
+            wordSpan.className = className;
+            wordSpan.textContent = word;
+            wordSpan.style.animationDelay = "0ms";
+
+            element.appendChild(wordSpan);
+
+            // Add space after word (except for last word)
+            if (index < words.length - 1) {
+              element.appendChild(document.createTextNode(" "));
+            }
+
+            // Re-add cursor at the end
+            if (showCursor) {
+              const newCursor = document.createElement("span");
+              newCursor.className = "cursor-blink";
+              newCursor.innerHTML = "&nbsp;";
+              element.appendChild(newCursor);
+
+              // Remove cursor after completion
+              if (index === words.length - 1) {
+                setTimeout(() => {
+                  const finalCursor = element.querySelector(".cursor-blink");
+                  if (finalCursor) finalCursor.remove();
+                }, cursorDuration);
+              }
+            }
+          }, index * duration);
+        });
+      }
+
+      // Initialize text effect when page loads
+      window.addEventListener("load", () => {
+        createTextGenerateEffect(
+          "text-generate",
+          "once voice command to build a team of agents",
+          {
+            duration: 150, // Slower for better effect
+            showCursor: true,
+            cursorDuration: 1500,
+          }
+        );
       });
     </script>
   </body>
