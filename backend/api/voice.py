@@ -11,6 +11,7 @@ from services.daily_service import create_room
 try:
     from core.JSON_flow_agent import JSONFlowAgent
     from core.productivity_flow_agent import productivity_flow_agent
+
     # Temporarily disable sequential agent due to merge conflicts
     # from core.JSON_flow_agent_sequential import SequentialJSONFlowAgent
     SequentialJSONFlowAgent = None
@@ -207,10 +208,9 @@ async def create_productivity_room(background_tasks: BackgroundTasks):
     """
     if not PIPECAT_AVAILABLE:
         raise HTTPException(
-            status_code=503,
-            detail="Voice agent features are not available in this deployment"
+            status_code=503, detail="Voice agent features are not available in this deployment"
         )
-        
+
     try:
         room_url, token = await create_room()
 
@@ -253,10 +253,9 @@ async def create_json_flow_room(
     """
     if not PIPECAT_AVAILABLE:
         raise HTTPException(
-            status_code=503,
-            detail="Voice agent features are not available in this deployment"
+            status_code=503, detail="Voice agent features are not available in this deployment"
         )
-        
+
     try:
         room_url, token = await create_room()
 
@@ -311,9 +310,9 @@ async def create_sequential_flow_room(
     if not PIPECAT_AVAILABLE or SequentialJSONFlowAgent is None:
         raise HTTPException(
             status_code=503,
-            detail="Sequential flow agent features are not available in this deployment"
+            detail="Sequential flow agent features are not available in this deployment",
         )
-        
+
     try:
         room_url, token = await create_room()
 
@@ -338,12 +337,14 @@ async def create_sequential_flow_room(
             paradigm = request.json_config.get("paradigm", "sequential")
             # Count all agents in the tree
             if "startingAgent" in request.json_config:
+
                 def count_agents(agent):
                     count = 1
                     if "children" in agent:
                         for child in agent["children"]:
                             count += count_agents(child)
                     return count
+
                 agents_count = count_agents(request.json_config["startingAgent"])
 
         return SequentialFlowRoomResponse(

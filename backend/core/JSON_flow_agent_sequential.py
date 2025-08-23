@@ -84,7 +84,7 @@ DEFAULT_JSON_CONFIG = {
                 "dataPoints": [
                     {"name": "Full Name", "value": ""},
                     {"name": "Email Address", "value": ""},
-                    {"name": "Phone Number", "value": ""}
+                    {"name": "Phone Number", "value": ""},
                 ],
                 "children": [
                     {
@@ -95,7 +95,7 @@ DEFAULT_JSON_CONFIG = {
                             {
                                 "type": "emailAgent",
                                 "identifier": "1_1_1_1",
-                                "prompt": "I'll compose and send you a personalized welcome email based on the information you provided."
+                                "prompt": "I'll compose and send you a personalized welcome email based on the information you provided.",
                             },
                             {
                                 "type": "dataCollector",
@@ -103,27 +103,27 @@ DEFAULT_JSON_CONFIG = {
                                 "prompt": "Let me collect some additional preferences from you.",
                                 "dataPoints": [
                                     {"name": "Preferred Contact Method", "value": ""},
-                                    {"name": "Industry", "value": ""}
+                                    {"name": "Industry", "value": ""},
                                 ],
                                 "children": [
                                     {
                                         "type": "emailAgent",
                                         "identifier": "1_1_1_2_1",
-                                        "prompt": "Perfect! I'll send you a customized follow-up email with relevant information for your industry."
+                                        "prompt": "Perfect! I'll send you a customized follow-up email with relevant information for your industry.",
                                     }
-                                ]
-                            }
-                        ]
+                                ],
+                            },
+                        ],
                     }
-                ]
+                ],
             },
             {
                 "type": "emailAgent",
                 "identifier": "1_2",
-                "prompt": "I'll send you a quick informational email about our services right away."
-            }
-        ]
-    }
+                "prompt": "I'll send you a quick informational email about our services right away.",
+            },
+        ],
+    },
 }
 
 
@@ -156,10 +156,7 @@ class SequentialFlowData:
         self.paradigm: str = "sequential"
         self.current_agent_id: str = "1"
         self.collected_data: dict[str, dict[str, str]] = {}  # agent_id -> data points
-        self.conversation_state = {
-            "current_agent_id": "1",
-            "flow_active": True
-        }
+        self.conversation_state = {"current_agent_id": "1", "flow_active": True}
 
 
 # Global data store
@@ -168,32 +165,32 @@ flow_data = SequentialFlowData()
 
 def add_identifiers_to_json(config: dict[str, Any]) -> dict[str, Any]:
     """Add IDENTIFIER properties to all agents in the JSON structure."""
-    
+
     def process_agent(agent: dict[str, Any], identifier: str) -> dict[str, Any]:
         """Recursively process agents and add identifiers."""
         agent_copy = agent.copy()
         agent_copy["identifier"] = identifier
-        
+
         if "children" in agent:
             agent_copy["children"] = []
             for i, child in enumerate(agent["children"], 1):
                 child_identifier = f"{identifier}_{i}"
                 processed_child = process_agent(child, child_identifier)
                 agent_copy["children"].append(processed_child)
-                
+
         return agent_copy
-    
+
     config_copy = config.copy()
     if "startingAgent" in config:
         config_copy["startingAgent"] = process_agent(config["startingAgent"], "1")
-    
+
     return config_copy
 
 
 def build_agent_lookup(agent: dict[str, Any], lookup: dict[str, dict[str, Any]]) -> None:
     """Build a lookup table for quick agent access by identifier."""
     lookup[agent["identifier"]] = agent
-    
+
     if "children" in agent:
         for child in agent["children"]:
             build_agent_lookup(child, lookup)
@@ -259,32 +256,28 @@ async def route_to_node(
 ) -> tuple[RouteResult, NodeConfig]:
     """Route to a specific node by identifier."""
     node_identifier = args["node_identifier"]
-    
+
     # Validate that the node exists
     if node_identifier not in flow_data.flow_tree:
         logger.error(f"Invalid node identifier: {node_identifier}")
         result = RouteResult(
-            current_agent_id=flow_data.current_agent_id,
-            routed_to=node_identifier,
-            status="error"
+            current_agent_id=flow_data.current_agent_id, routed_to=node_identifier, status="error"
         )
         return result, None
-    
+
     # Update conversation state
     flow_data.conversation_state["current_agent_id"] = node_identifier
     flow_data.current_agent_id = node_identifier
-    
+
     target_agent = flow_data.flow_tree[node_identifier]
-    
+
     logger.info(f"Routing from {flow_data.current_agent_id} to {node_identifier}")
     logger.info(f"Target agent type: {target_agent.get('type')}")
-    
+
     result = RouteResult(
-        current_agent_id=flow_data.current_agent_id,
-        routed_to=node_identifier,
-        status="success"
+        current_agent_id=flow_data.current_agent_id, routed_to=node_identifier, status="success"
     )
-    
+
     # Create appropriate node based on agent type
     if target_agent["type"] == "dataCollector":
         next_node = create_data_collector_node(target_agent)
@@ -295,7 +288,7 @@ async def route_to_node(
     else:
         logger.error(f"Unknown agent type: {target_agent['type']}")
         next_node = create_end_node()
-    
+
     return result, next_node
 
 
@@ -307,33 +300,32 @@ async def record_data(
     data_name = args["data_name"]
     data_value = args["data_value"]
     current_agent_id = flow_data.current_agent_id
-    
+
     # Initialize data storage for this agent if not exists
     if current_agent_id not in flow_data.collected_data:
         flow_data.collected_data[current_agent_id] = {}
-    
+
     # Record the data
     flow_data.collected_data[current_agent_id][data_name] = data_value
-    
+
     logger.info(f"Recorded data for agent {current_agent_id}: {data_name} = {data_value}")
-    
+
     # Get current agent to check if all data is collected
     current_agent = flow_data.flow_tree[current_agent_id]
     data_points = current_agent.get("dataPoints", [])
-    
+
     collected_data = flow_data.collected_data[current_agent_id]
     all_collected = all(
-        point["name"] in collected_data and collected_data[point["name"]]
-        for point in data_points
+        point["name"] in collected_data and collected_data[point["name"]] for point in data_points
     )
-    
+
     result = DataCollectionResult(
         agent_id=current_agent_id,
         data_collected=collected_data.copy(),
         all_data_collected=all_collected,
-        status="success"
+        status="success",
     )
-    
+
     # Continue with current node to allow for more data collection or routing
     current_node = create_data_collector_node(current_agent)
     return result, current_node
@@ -347,9 +339,9 @@ async def send_email(
     email_subject = args["email_subject"]
     email_body = args["email_body"]
     recipient = args.get("recipient", "user@example.com")
-    
+
     current_agent_id = flow_data.current_agent_id
-    
+
     # For testing purposes, just log the email
     logger.info("=" * 50)
     logger.info("EMAIL SENT")
@@ -358,13 +350,13 @@ async def send_email(
     logger.info(f"Subject: {email_subject}")
     logger.info(f"Body:\n{email_body}")
     logger.info("=" * 50)
-    
+
     result = EmailResult(
         agent_id=current_agent_id,
         email_content=f"Subject: {email_subject}\n\n{email_body}",
-        status="sent"
+        status="sent",
     )
-    
+
     # End the conversation after sending email
     end_node = create_end_node()
     return result, end_node
@@ -415,7 +407,7 @@ def create_initial_node() -> NodeConfig:
 def create_starting_node() -> NodeConfig:
     """Create the starting node based on the starting agent."""
     starting_agent = flow_data.flow_tree["1"]
-    
+
     if starting_agent["type"] == "router":
         return create_router_node(starting_agent)
     if starting_agent["type"] == "dataCollector":
@@ -430,13 +422,15 @@ def create_router_node(agent: dict[str, Any]) -> NodeConfig:
     agent_id = agent["identifier"]
     prompt = agent.get("prompt", "I will route your request to the appropriate agent.")
     children = agent.get("children", [])
-    
+
     # Build children description for the agent
-    children_desc = "\n".join([
-        f"- {child['identifier']}: {child['type']} - {child.get('prompt', 'No description')}"
-        for child in children
-    ])
-    
+    children_desc = "\n".join(
+        [
+            f"- {child['identifier']}: {child['type']} - {child.get('prompt', 'No description')}"
+            for child in children
+        ]
+    )
+
     return {
         "name": f"router_{agent_id}",
         "role_messages": [
@@ -469,29 +463,28 @@ def create_data_collector_node(agent: dict[str, Any]) -> NodeConfig:
     prompt = agent.get("prompt", "I need to collect some information from you.")
     data_points = agent.get("dataPoints", [])
     children = agent.get("children", [])
-    
+
     # Check what data has already been collected
     collected_data = flow_data.collected_data.get(agent_id, {})
-    
+
     # Build data points description
     data_desc = []
     for point in data_points:
         status = "✓ Collected" if point["name"] in collected_data else "○ Needed"
         value = f" ({collected_data[point['name']]})" if point["name"] in collected_data else ""
         data_desc.append(f"- {point['name']}: {status}{value}")
-    
+
     data_points_str = ",".join(data_desc)
-    
+
     # Check if all data is collected
     all_collected = all(
-        point["name"] in collected_data and collected_data[point["name"]]
-        for point in data_points
+        point["name"] in collected_data and collected_data[point["name"]] for point in data_points
     )
-    
+
     functions = [record_data_schema]
     if all_collected and children:
         functions.append(route_to_node_schema)
-    
+
     return {
         "name": f"data_collector_{agent_id}",
         "role_messages": [
@@ -501,7 +494,11 @@ def create_data_collector_node(agent: dict[str, Any]) -> NodeConfig:
                     f"You are a Data Collector Agent (ID: {agent_id}) in a sequential flow. "
                     "Your job is to collect specific data points from the user. "
                     "Use the recordData function to store each piece of information. "
-                    + ("Once all data is collected, you can use routeToNode to move to the next agent." if children else "")
+                    + (
+                        "Once all data is collected, you can use routeToNode to move to the next agent."
+                        if children
+                        else ""
+                    )
                 ),
             },
         ],
@@ -511,7 +508,11 @@ def create_data_collector_node(agent: dict[str, Any]) -> NodeConfig:
                 "content": (
                     f"{prompt}\n\n"
                     f"Data points to collect:\n{data_points_str}\n\n"
-                    + ("All data collected! You can now route to the next step." if all_collected else "Please collect the missing information.")
+                    + (
+                        "All data collected! You can now route to the next step."
+                        if all_collected
+                        else "Please collect the missing information."
+                    )
                 ),
             },
         ],
@@ -523,18 +524,18 @@ def create_email_agent_node(agent: dict[str, Any]) -> NodeConfig:
     """Create an email agent node."""
     agent_id = agent["identifier"]
     prompt = agent.get("prompt", "I will compose and send an email for you.")
-    
+
     # Include any collected data in the context
     all_collected_data = {}
     for agent_data in flow_data.collected_data.values():
         all_collected_data.update(agent_data)
-    
+
     data_context = ""
     if all_collected_data:
         data_context = "\n\nCollected data to reference:\n"
         for key, value in all_collected_data.items():
             data_context += f"- {key}: {value}\n"
-    
+
     return {
         "name": f"email_agent_{agent_id}",
         "role_messages": [
@@ -605,7 +606,7 @@ class SequentialJSONFlowAgent:
 
         # Add identifiers to the configuration
         processed_config = add_identifiers_to_json(config)
-        
+
         # Store configuration
         flow_data.current_config = processed_config
         flow_data.paradigm = processed_config["paradigm"]
@@ -613,16 +614,15 @@ class SequentialJSONFlowAgent:
         # Build agent lookup tree
         flow_data.flow_tree.clear()
         build_agent_lookup(processed_config["startingAgent"], flow_data.flow_tree)
-        
+
         # Reset conversation state
-        flow_data.conversation_state = {
-            "current_agent_id": "1",
-            "flow_active": True
-        }
+        flow_data.conversation_state = {"current_agent_id": "1", "flow_active": True}
         flow_data.current_agent_id = "1"
         flow_data.collected_data.clear()
 
-        logger.info(f"Configuration validated successfully. Found {len(flow_data.flow_tree)} agents.")
+        logger.info(
+            f"Configuration validated successfully. Found {len(flow_data.flow_tree)} agents."
+        )
 
     async def create_flow_pipeline(
         self,

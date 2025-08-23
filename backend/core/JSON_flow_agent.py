@@ -23,6 +23,7 @@ from dotenv import load_dotenv
 try:
     from browser_use import Agent, BrowserProfile, BrowserSession
     from langchain_openai import ChatOpenAI
+
     BROWSER_USE_AVAILABLE = True
 except ImportError:
     Agent = None
@@ -171,10 +172,6 @@ end_conversation_schema = FlowsFunctionSchema(
 )
 
 
-
-
-
-
 def browser_step_finish_hook(agent):
     print(agent.history.model_actions)
 
@@ -210,9 +207,7 @@ async def browser_function(
     if agent_id < 0 or agent_id >= len(json_flow_data.sub_agents):
         logger.error(f"Invalid agent_id: {agent_id}")
         result = BrowserResult(
-
             prompt="Invalid agent ID",
-
         )
 
         return result, None
@@ -238,7 +233,7 @@ async def browser_function(
     # Create Browserbase session
     bb = Browserbase(api_key=os.environ["BROWSERBASE_API_KEY"])
     session = bb.sessions.create(project_id=os.environ["BROWSERBASE_PROJECT_ID"])
-    
+
     logger.info(f"Browserbase Session ID: {session.id}")
     logger.info(f"Debug URL: https://www.browserbase.com/sessions/{session.id}")
 
@@ -249,9 +244,9 @@ async def browser_function(
             agent_type="browser",
             prompt=agent.get("prompt"),
             status=False,
-            run_result="Browser-use dependencies not available in this environment"
+            run_result="Browser-use dependencies not available in this environment",
         )
-    
+
     # Configure browser profile
     profile = BrowserProfile(
         keep_alive=False,  # Essential for proper cleanup
@@ -267,15 +262,15 @@ async def browser_function(
         keep_alive=False,  # Essential for proper cleanup
         initialized=False,
     )
-    
+
     try:
         # Start the browser session
         await browser_session.start()
         logger.info("✅ Browser session initialized successfully")
-        
+
         # Use the actual task from the agent configuration
         task = agent.get("prompt", "Navigate to the specified URL and perform basic web browsing")
-        
+
         # Create Browser Use agent
         browser_agent = Agent(
             task=task,
@@ -286,29 +281,32 @@ async def browser_function(
             retry_delay=5,
             max_actions_per_step=1,
         )
-        
+
         logger.info(f"🚀 Starting browser task: {task}")
         history = await browser_agent.run(max_steps=20, on_step_end=browser_step_finish_hook)
         logger.info("🎉 Browser task completed successfully!")
-        
+
     except Exception as e:
         # Handle expected browser disconnection after successful completion
         error_msg = str(e).lower()
         if "browser is closed" in error_msg or "disconnected" in error_msg:
             logger.info("✅ Task completed - Browser session ended normally")
+
             # Create a mock successful history for this case
             class MockHistory:
                 def __init__(self):
                     self.is_successful = True
                     self.final_result = "Task completed successfully (session ended normally)"
                     self._model_actions = []
+
                 def model_actions(self):
                     return self._model_actions
+
             history = MockHistory()
         else:
             logger.error(f"❌ Browser agent execution error: {e}")
             raise
-    
+
     finally:
         # Cleanup browser session
         try:
@@ -321,19 +319,18 @@ async def browser_function(
                 logger.info("Browser session was already closed (expected behavior)")
             else:
                 logger.warning(f"⚠️  Error during browser session closure: {e}")
-        
+
         # Clean up agent reference
         if "browser_agent" in locals():
             del browser_agent
-
 
     result = BrowserResult(
         agent_id=agent_id,
         agent_type="browser-agent",
         prompt=agent.get("prompt", ""),
         status=history.is_successful,
-        run_result= history.final_result,
-        actions_completed= history.model_actions()
+        run_result=history.final_result,
+        actions_completed=history.model_actions(),
     )
 
     # Store execution result in flow state
@@ -557,7 +554,6 @@ class JSONFlowAgent:
                 if "prompt" not in agent:
                     msg = f"Sub-agent {i} missing 'prompt' field"
                     raise ValueError(msg)
-
 
         logger.info(f"Configuration validated successfully. Paradigm: {json_flow_data.paradigm}")
 
