@@ -4,7 +4,8 @@
   "outputDirectory": "frontend/app/dist",
   "functions": {
     "api/index.py": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "excludeFiles": "{backend/.venv,backend/__pycache__,backend/**/__pycache__,backend/.pytest_cache,backend/tests,backend/test_*.py,backend/*.sh,backend/uv.lock,backend/app,backend/*.md,backend/requirements 2.txt}/**"
     }
   },
   "rewrites": [
