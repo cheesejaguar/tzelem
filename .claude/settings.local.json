@@ -13,7 +13,7 @@
       "Bash(uv sync:*)",
       "Bash(uv run:*)",
       "Bash(curl:*)",
-      "Read(//var/folders/fg/9wrchf2n5k132g1x57qs_0000000gn/T/TemporaryItems/NSIRD_screencaptureui_YRUkcc/**)"
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
