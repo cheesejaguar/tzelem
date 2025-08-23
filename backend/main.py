@@ -61,3 +61,10 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("Tzelem Backend shutting down...")
+
+
+# Handle OPTIONS requests for CORS preflight
+@app.options("/{path:path}")
+async def options_handler(request):
+    """Handle CORS preflight requests"""
+    return {"status": "ok"}

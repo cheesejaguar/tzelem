@@ -10,12 +10,12 @@ from pathlib import Path
 backend_path = Path(__file__).parent.parent / "backend"
 sys.path.insert(0, str(backend_path))
 
-# Set up environment
+# Set up environment for production
 os.environ.setdefault("DEBUG", "false")
 
 # Import the FastAPI app
-from backend.main import app
+from main import app
 
-# Export the app as 'handler' for Vercel
-# Vercel will use this to handle requests
+# For Vercel, we export the app directly
+# Vercel's Python runtime will handle the ASGI interface
 handler = app

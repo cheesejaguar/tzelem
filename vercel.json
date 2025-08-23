@@ -1,21 +1,41 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm ci --prefix frontend/app && npm run build --prefix frontend/app",
+  "buildCommand": "npm run build:frontend",
   "outputDirectory": "frontend/app/dist",
+  "installCommand": "npm install && npm run install:frontend",
   "functions": {
     "api/index.py": {
-      "maxDuration": 30,
-      "excludeFiles": "{backend/.venv,backend/__pycache__,backend/**/__pycache__,backend/.pytest_cache,backend/tests,backend/test_*.py,backend/*.sh,backend/uv.lock,backend/app,backend/*.md,backend/requirements 2.txt}/**"
+      "runtime": "python3.11",
+      "maxDuration": 30
     }
   },
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api"
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
     },
     {
       "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
     }
   ]
 }

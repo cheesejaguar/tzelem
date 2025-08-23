@@ -21,7 +21,9 @@ class Settings(BaseSettings):
         "http://localhost:3000",  # Alternative dev port
         "https://staging.tzlm.io",  # Staging environment
         "https://tzlm.io",  # Production environment
-        "https://*.vercel.app",  # Vercel preview deployments
+        "https://tzelem.vercel.app",  # Main Vercel deployment
+        "https://tzelem-*.vercel.app",  # Vercel preview deployments
+        "https://*.vercel.app",  # All Vercel deployments (temporary)
     ]
 
     class Config:
