@@ -91,13 +91,20 @@ Update `backend/core/config.py` to add your specific production domains.
 
 ### Common Issues
 
-1. **Import Errors**: Make sure all Python dependencies are listed in `backend/requirements.txt`
+1. **Serverless Function Size Limit (250MB)**: 
+   - The deployment uses optimized dependencies to stay under Vercel's size limit
+   - Heavy ML dependencies (pipecat-ai, onnxruntime) are made optional
+   - Voice agent features return 503 status in serverless deployment
 
-2. **CORS Issues**: Check that your frontend domain is listed in `backend/core/config.py`
+2. **Import Errors**: Make sure all Python dependencies are listed in `requirements.txt`
 
-3. **Build Failures**: Ensure Node.js version matches `frontend/app/package.json` engines
+3. **CORS Issues**: Check that your frontend domain is listed in `backend/core/config.py`
 
-4. **API Routes Not Working**: Verify the API routing in `vercel.json` and `api/index.py`
+4. **Build Failures**: Ensure Node.js version is compatible (>=18.0.0)
+
+5. **API Routes Not Working**: Verify the API routing in `vercel.json` and `api/index.py`
+
+6. **Voice Features Unavailable**: In serverless deployment, voice agent endpoints return 503 - this is expected behavior
 
 ### Vercel Logs
 
@@ -133,6 +140,8 @@ All backend routes are automatically proxied:
 2. **Bundle Size**: Frontend assets are optimized by Vite
 3. **Cold Starts**: FastAPI app is cached between requests
 4. **CORS**: Configured for optimal performance
+5. **Dependencies**: Minimal requirements.txt reduces function size and cold start time
+6. **Memory**: Serverless functions allocated 1GB for optimal performance
 
 ## Security
 

@@ -5,9 +5,18 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
 from core.config import settings
-from core.JSON_flow_agent import JSONFlowAgent
-from core.productivity_flow_agent import productivity_flow_agent
 from services.daily_service import create_room
+
+# Make heavy dependencies optional for serverless deployment
+try:
+    from core.JSON_flow_agent import JSONFlowAgent
+    from core.productivity_flow_agent import productivity_flow_agent
+    PIPECAT_AVAILABLE = True
+except ImportError:
+    JSONFlowAgent = None
+    productivity_flow_agent = None
+    PIPECAT_AVAILABLE = False
+    logging.warning("Pipecat dependencies not available - voice agent features disabled")
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
 
@@ -139,6 +148,12 @@ async def create_productivity_room(background_tasks: BackgroundTasks):
     Returns:
         ProductivityRoomResponse: Object containing room details and agent info
     """
+    if not PIPECAT_AVAILABLE:
+        raise HTTPException(
+            status_code=503, 
+            detail="Voice agent features are not available in this deployment"
+        )
+        
     try:
         room_url, token = await create_room()
 
@@ -179,6 +194,12 @@ async def create_json_flow_room(
     Returns:
         JSONFlowRoomResponse: Object containing room details and agent info
     """
+    if not PIPECAT_AVAILABLE:
+        raise HTTPException(
+            status_code=503, 
+            detail="Voice agent features are not available in this deployment"
+        )
+        
     try:
         room_url, token = await create_room()
 
