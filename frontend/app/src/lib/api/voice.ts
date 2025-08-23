@@ -48,7 +48,7 @@ export async function createProductivityRoom(): Promise<ProductivityRoomResponse
  * Create a JSON flow voice room with optional configuration
  */
 export async function createJSONFlowRoom(
-  config?: Record<string, any>
+  config?: Record<string, unknown>
 ): Promise<JSONFlowRoomResponse> {
   try {
     const request: JSONFlowRoomRequest = {};
@@ -121,8 +121,8 @@ export async function joinVoiceRoom(
   token: string,
   onConnect?: () => void,
   onDisconnect?: () => void,
-  onError?: (error: Error) => void
-): Promise<any> {
+  _onError?: (error: Error) => void
+): Promise<unknown> {
   // TODO: Implement PipeCat client integration
   // This requires setting up a proper Transport (e.g., DailyTransport)
   // and configuring the client with the appropriate options
@@ -143,7 +143,7 @@ export async function joinVoiceRoom(
       console.log('Mock disconnect called');
       onDisconnect?.();
     },
-    on: (event: string, handler: Function) => {
+    on: (event: string, _handler: (...args: unknown[]) => void) => {
       console.log(`Mock event handler registered for ${event}`);
     },
   };

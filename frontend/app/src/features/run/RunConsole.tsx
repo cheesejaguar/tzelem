@@ -8,7 +8,6 @@ import { Separator } from '@/components/ui/separator';
 import { 
   Play, 
   Square, 
-  RefreshCw, 
   Download, 
   Trash2,
   CheckCircle,
@@ -17,7 +16,7 @@ import {
   Activity
 } from 'lucide-react';
 import { useSSE } from '@/hooks/useSSE';
-import { startRun, getRunStatus, stopRun } from '@/lib/api/runs';
+import { startRun, stopRun } from '@/lib/api/runs';
 import { useFlow } from '@/contexts/FlowContext';
 import { exportFlow } from '@/features/flow/utils/flowExport';
 import { RunStatus, RunEvent } from '@/types/api';
@@ -29,7 +28,7 @@ interface RunConsoleProps {
   autoStart?: boolean;
 }
 
-export function RunConsole({ className, autoStart = false }: RunConsoleProps) {
+export function RunConsole({ className }: RunConsoleProps) {
   const { state: flowState } = useFlow();
   const [runId, setRunId] = useState<string | null>(null);
   const [runStatus, setRunStatus] = useState<RunStatus | null>(null);
@@ -44,7 +43,6 @@ export function RunConsole({ className, autoStart = false }: RunConsoleProps) {
     events, 
     isConnected, 
     isReconnecting, 
-    error: sseError,
     clearEvents,
     disconnect
   } = useSSE(sseUrl, {
