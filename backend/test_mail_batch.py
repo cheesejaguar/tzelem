@@ -112,7 +112,10 @@ class BatchMailTester:
         return emails
 
     def send_batch(
-        self, emails: list[dict[str, Any]], delay_between: float = 0.5, show_progress: bool = True  # noqa: FBT001, FBT002
+        self,
+        emails: list[dict[str, Any]],
+        delay_between: float = 0.5,
+        show_progress: bool = True,  # noqa: FBT001, FBT002
     ) -> dict[str, Any]:
         """
         Send a batch of emails
