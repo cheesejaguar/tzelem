@@ -105,6 +105,9 @@ async def send_mail(mail_data: MailRequest) -> MailResponse:
             message="Email sent successfully",
         )
 
+    except HTTPException:
+        # Re-raise HTTPException without wrapping it
+        raise
     except Exception as e:
         logger.exception(f"Failed to send mail to {mail_data.to}")
         raise HTTPException(status_code=500, detail=f"Failed to send mail: {e!s}") from e
