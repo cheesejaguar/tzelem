@@ -13,7 +13,7 @@ from api.flows import FlowData, router
 @pytest.fixture
 def client() -> TestClient:
     """Create test client with flows router."""
-    from fastapi import FastAPI  # noqa: PLC0415
+    from fastapi import FastAPI
 
     app = FastAPI()
     app.include_router(router)
@@ -109,7 +109,7 @@ class TestCreateOrUpdateFlow:
         assert response.json() == {"flowId": "minimal-flow"}
 
     def test_create_flow_validation_error(
-        self, client: TestClient, mock_convex_client: MagicMock  # noqa: ARG002
+        self, client: TestClient, mock_convex_client: MagicMock
     ) -> None:
         """Test flow creation with invalid data."""
         invalid_flow = {
@@ -172,9 +172,7 @@ class TestGetFlow:
             "flows:getFlow", {"flowId": "test-flow-001"}
         )
 
-    def test_get_flow_not_found(
-        self, client: TestClient, mock_convex_client: MagicMock
-    ) -> None:
+    def test_get_flow_not_found(self, client: TestClient, mock_convex_client: MagicMock) -> None:
         """Test retrieval of non-existent flow."""
         mock_convex_client.query.return_value = None
 
@@ -183,9 +181,7 @@ class TestGetFlow:
         assert response.status_code == 404
         assert "Flow non-existent-flow not found" in response.json()["detail"]
 
-    def test_get_flow_convex_error(
-        self, client: TestClient, mock_convex_client: MagicMock
-    ) -> None:
+    def test_get_flow_convex_error(self, client: TestClient, mock_convex_client: MagicMock) -> None:
         """Test handling of Convex client errors during retrieval."""
         mock_convex_client.query.side_effect = Exception("Convex query failed")
 
@@ -226,9 +222,7 @@ class TestListFlows:
         assert len(response.json()) == 2
         assert response.json() == flows_list
 
-    def test_list_flows_empty(
-        self, client: TestClient, mock_convex_client: MagicMock
-    ) -> None:
+    def test_list_flows_empty(self, client: TestClient, mock_convex_client: MagicMock) -> None:
         """Test listing flows when none exist."""
         mock_convex_client.query.return_value = None
 
@@ -388,9 +382,7 @@ class TestErrorHandling:
         response = client.post("/api/flows", json={})
         assert response.status_code == 422
 
-    def test_large_flow_data(
-        self, client: TestClient, mock_convex_client: MagicMock
-    ) -> None:
+    def test_large_flow_data(self, client: TestClient, mock_convex_client: MagicMock) -> None:
         """Test handling of large flow data."""
         large_flow = {
             "id": "large-flow",
@@ -398,7 +390,7 @@ class TestErrorHandling:
             "paradigm": "Agentic",
             "nodes": [{"id": f"node-{i}", "data": {"value": "x" * 100}} for i in range(100)],
             "edges": [
-                {"id": f"edge-{i}", "source": f"node-{i}", "target": f"node-{i+1}"}
+                {"id": f"edge-{i}", "source": f"node-{i}", "target": f"node-{i + 1}"}
                 for i in range(99)
             ],
             "version": "0.1.0",
@@ -411,4 +403,3 @@ class TestErrorHandling:
 
         response = client.post("/api/flows", json=large_flow)
         assert response.status_code == 200
-
