@@ -4,10 +4,8 @@
   "outputDirectory": "frontend/app/dist",
   "installCommand": "npm install && npm run install:frontend",
   "functions": {
-    "api/index.py": {
-      "runtime": "python3.9",
-      "maxDuration": 30,
-      "memory": 1024
+    "api/*.py": {
+      "maxDuration": 30
     }
   },
   "rewrites": [
