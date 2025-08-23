@@ -17,6 +17,7 @@ dependencies = [
     "pipecat-ai-flows>=0.0.18",
     "convex==0.6.0",
     "agentmail>=0.0.53",
+    "requests>=2.31.0",
 ]
 
 [project.optional-dependencies]
