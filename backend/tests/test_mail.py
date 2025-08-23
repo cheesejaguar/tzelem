@@ -51,9 +51,7 @@ class TestMailAPI:
             assert data["messageId"] == "msg-12345"
             assert data["status"] == "queued"
             assert data["message"] == "Email sent successfully"
-            mock_client.inboxes.create.assert_called_once_with(
-                display_name="Test Sender"
-            )
+            mock_client.inboxes.create.assert_called_once_with(display_name="Test Sender")
             mock_client.inboxes.messages.send.assert_called_once_with(
                 inbox_id="test@agentmail.to",
                 to="test@example.com",
@@ -91,9 +89,7 @@ class TestMailAPI:
             data = response.json()
             assert data["messageId"] == "msg-67890"
             assert data["status"] == "queued"
-            mock_client.inboxes.create.assert_called_once_with(
-                display_name="Tzelem"
-            )
+            mock_client.inboxes.create.assert_called_once_with(display_name="Tzelem")
             mock_client.inboxes.messages.send.assert_called_once_with(
                 inbox_id="test@agentmail.to",
                 to="test@example.com",
@@ -130,9 +126,7 @@ class TestMailAPI:
 
             assert response.status_code == 200
             # Verify HTML was used, not text
-            mock_client.inboxes.create.assert_called_once_with(
-                display_name="Tzelem"
-            )
+            mock_client.inboxes.create.assert_called_once_with(display_name="Tzelem")
             mock_client.inboxes.messages.send.assert_called_once_with(
                 inbox_id="test@agentmail.to",
                 to="test@example.com",
