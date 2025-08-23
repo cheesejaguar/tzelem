@@ -1,5 +1,9 @@
-import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import { toast } from 'sonner';
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
+} from "axios";
+import { toast } from "sonner";
 
 // API base URL from environment or default based on current location
 const getApiBaseUrl = () => {
@@ -7,26 +11,26 @@ const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
   }
-  
   // Otherwise, use relative URLs for production/staging (will use same domain)
   // and localhost for development
   if (import.meta.env.DEV) {
-    return 'http://localhost:8000';
+    return "http://localhost:8000";
   }
-  
+
   // In production/staging, use relative URL (same domain)
-  return '';
+  return "";
 };
 
 const API_BASE_URL = getApiBaseUrl();
-const DEBUG_MODE = import.meta.env.VITE_ENABLE_DEBUG === 'true' || import.meta.env.DEV;
+const DEBUG_MODE =
+  import.meta.env.VITE_ENABLE_DEBUG === "true" || import.meta.env.DEV;
 
 // Create axios instance with default configuration
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000, // 30 second timeout
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   withCredentials: false, // Enable if you need cookies/auth
 });
@@ -36,11 +40,14 @@ api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // Log request in debug mode
     if (DEBUG_MODE && config.url) {
-      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.data);
+      console.log(
+        `[API Request] ${config.method?.toUpperCase()} ${config.url}`,
+        config.data
+      );
     }
 
     // Add auth token if available (from localStorage or context)
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem("auth_token");
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -49,7 +56,7 @@ api.interceptors.request.use(
   },
   (error: AxiosError) => {
     if (DEBUG_MODE) {
-      console.error('[API Request Error]', error);
+      console.error("[API Request Error]", error);
     }
     return Promise.reject(error);
   }
@@ -66,7 +73,7 @@ api.interceptors.response.use(
   },
   (error: AxiosError) => {
     if (DEBUG_MODE) {
-      console.error('[API Response Error]', error);
+      console.error("[API Response Error]", error);
     }
 
     // Handle different error statuses
@@ -77,35 +84,39 @@ api.interceptors.response.use(
       switch (status) {
         case 401:
           // Unauthorized - clear auth and redirect to login if needed
-          localStorage.removeItem('auth_token');
-          toast.error('Session expired. Please log in again.');
+          localStorage.removeItem("auth_token");
+          toast.error("Session expired. Please log in again.");
           // Optionally redirect to login page
           break;
         case 403:
-          toast.error('You do not have permission to perform this action.');
+          toast.error("You do not have permission to perform this action.");
           break;
         case 404:
-          toast.error('The requested resource was not found.');
+          toast.error("The requested resource was not found.");
           break;
         case 422:
           // Validation error
           toast.error(`Validation error: ${message}`);
           break;
         case 500:
-          toast.error('An internal server error occurred. Please try again later.');
+          toast.error(
+            "An internal server error occurred. Please try again later."
+          );
           break;
         case 503:
-          toast.error('Service temporarily unavailable. Please try again later.');
+          toast.error(
+            "Service temporarily unavailable. Please try again later."
+          );
           break;
         default:
           toast.error(`Error: ${message}`);
       }
     } else if (error.request) {
       // Request was made but no response received
-      toast.error('Network error. Please check your connection.');
+      toast.error("Network error. Please check your connection.");
     } else {
       // Something else happened
-      toast.error('An unexpected error occurred.');
+      toast.error("An unexpected error occurred.");
     }
 
     return Promise.reject(error);
@@ -115,8 +126,8 @@ api.interceptors.response.use(
 // Helper function to handle API responses
 export function handleApiResponse<T>(promise: Promise<any>): Promise<T> {
   return promise
-    .then(response => response.data)
-    .catch(error => {
+    .then((response) => response.data)
+    .catch((error) => {
       // Re-throw the error after it's been handled by interceptor
       throw error;
     });
@@ -126,20 +137,20 @@ export function handleApiResponse<T>(promise: Promise<any>): Promise<T> {
 export function createEventSource(endpoint: string): EventSource {
   const baseUrl = API_BASE_URL || window.location.origin;
   const url = `${baseUrl}${endpoint}`;
-  
+
   if (DEBUG_MODE) {
     console.log(`[SSE Connection] Opening connection to ${url}`);
   }
-  
+
   const eventSource = new EventSource(url);
-  
+
   eventSource.onerror = (error) => {
     if (DEBUG_MODE) {
       console.error(`[SSE Error] ${url}`, error);
     }
-    toast.error('Lost connection to server. Attempting to reconnect...');
+    toast.error("Lost connection to server. Attempting to reconnect...");
   };
-  
+
   return eventSource;
 }
 
@@ -148,3 +159,33 @@ export const getApiUrl = () => API_BASE_URL || window.location.origin;
 
 // Export configured axios instance
 export default api;
+
+// Additional interfaces and functions for Daily/Voice integration
+export interface VoiceRoomResponse {
+  room: string;
+  join_token: string;
+}
+
+export interface FlowRunRequest {
+  flowId?: string;
+  flow?: any;
+}
+
+export interface FlowRunResponse {
+  runId: string;
+  voice: {
+    room: string;
+    token?: string;
+  };
+}
+
+// Voice/Daily API functions using the axios instance
+export const apiClient = {
+  async createVoiceRoom(): Promise<VoiceRoomResponse> {
+    return handleApiResponse<VoiceRoomResponse>(api.post("/api/voice/rooms"));
+  },
+
+  async startFlowRun(data: FlowRunRequest): Promise<FlowRunResponse> {
+    return handleApiResponse<FlowRunResponse>(api.post("/api/runs", data));
+  },
+};
