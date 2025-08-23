@@ -1,10 +1,11 @@
 import asyncio
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, Response
 from pydantic import BaseModel
 
 from core.config import settings
+from core.rate_limiter import get_voice_limit, limiter
 from services.daily_service import create_room
 
 # Make heavy dependencies optional for serverless deployment
@@ -71,7 +72,8 @@ class SequentialFlowRoomResponse(BaseModel):
 
 
 @router.post("/rooms", response_model=RoomResponse)
-async def create_voice_room():
+@limiter.limit(get_voice_limit)
+async def create_voice_room(request: Request, response: Response):
     """
     Create a new Daily WebRTC room.
 
@@ -199,7 +201,10 @@ async def run_productivity_agent(room_url: str, token: str):
 
 
 @router.post("/productivity-rooms", response_model=ProductivityRoomResponse)
-async def create_productivity_room(background_tasks: BackgroundTasks):
+@limiter.limit(get_voice_limit)
+async def create_productivity_room(
+    request: Request, response: Response, background_tasks: BackgroundTasks
+):
     """
     Create a new Daily WebRTC room with productivity assistant agent.
 
@@ -238,8 +243,11 @@ async def create_productivity_room(background_tasks: BackgroundTasks):
 
 
 @router.post("/json-flow-rooms", response_model=JSONFlowRoomResponse)
+@limiter.limit(get_voice_limit)
 async def create_json_flow_room(
-    request: JSONFlowRoomRequest,
+    request: Request,
+    response: Response,
+    json_flow_request: JSONFlowRoomRequest,
     background_tasks: BackgroundTasks,
 ):
     """
@@ -264,21 +272,21 @@ async def create_json_flow_room(
             run_json_flow_agent,
             room_url,
             token,
-            request.json_config,
+            json_flow_request.json_config,
         )
 
         if settings.debug:
             print(f"[DEBUG] JSON flow room created: {room_url}")
-            if request.json_config:
-                print(f"[DEBUG] Using custom config: {request.json_config}")
+            if json_flow_request.json_config:
+                print(f"[DEBUG] Using custom config: {json_flow_request.json_config}")
 
         # Default values for response (will be updated when agent starts)
         paradigm = "Agentic"
         sub_agents_count = 0
 
-        if request.json_config:
-            paradigm = request.json_config.get("paradigm", "Agentic")
-            sub_agents_count = len(request.json_config.get("subAgents", []))
+        if json_flow_request.json_config:
+            paradigm = json_flow_request.json_config.get("paradigm", "Agentic")
+            sub_agents_count = len(json_flow_request.json_config.get("subAgents", []))
 
         return JSONFlowRoomResponse(
             room=room_url,
@@ -294,8 +302,11 @@ async def create_json_flow_room(
 
 
 @router.post("/sequential-flow-rooms", response_model=SequentialFlowRoomResponse)
+@limiter.limit(get_voice_limit)
 async def create_sequential_flow_room(
-    request: SequentialFlowRoomRequest,
+    request: Request,
+    response: Response,
+    seq_flow_request: SequentialFlowRoomRequest,
     background_tasks: BackgroundTasks,
 ):
     """
@@ -321,7 +332,7 @@ async def create_sequential_flow_room(
             run_sequential_flow_agent,
             room_url,
             token,
-            request.json_config,
+            seq_flow_request.json_config,
         )
 
         if settings.debug:
@@ -333,10 +344,10 @@ async def create_sequential_flow_room(
         paradigm = "sequential"
         agents_count = 0
 
-        if request.json_config:
-            paradigm = request.json_config.get("paradigm", "sequential")
+        if seq_flow_request.json_config:
+            paradigm = seq_flow_request.json_config.get("paradigm", "sequential")
             # Count all agents in the tree
-            if "startingAgent" in request.json_config:
+            if "startingAgent" in seq_flow_request.json_config:
 
                 def count_agents(agent):
                     count = 1
@@ -345,7 +356,7 @@ async def create_sequential_flow_room(
                             count += count_agents(child)
                     return count
 
-                agents_count = count_agents(request.json_config["startingAgent"])
+                agents_count = count_agents(seq_flow_request.json_config["startingAgent"])
 
         return SequentialFlowRoomResponse(
             room=room_url,

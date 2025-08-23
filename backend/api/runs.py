@@ -3,9 +3,11 @@ import json
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel
 from starlette.responses import StreamingResponse
+
+from core.rate_limiter import get_runs_limit, limiter
 
 router = APIRouter(prefix="/api/runs", tags=["runs"])
 
@@ -38,7 +40,8 @@ class RunStatus(BaseModel):
 
 
 @router.post("", response_model=RunStartResponse)
-async def start_run(request: RunStartRequest):
+@limiter.limit(get_runs_limit)
+async def start_run(request: Request, response: Response, run_request: RunStartRequest):
     """
     Start a new run with either a flow ID or full flow JSON.
 
@@ -50,7 +53,7 @@ async def start_run(request: RunStartRequest):
     """
     try:
         # Validate that either flowId or flow is provided
-        if not request.flowId and not request.flow:
+        if not run_request.flowId and not run_request.flow:
             raise HTTPException(
                 status_code=400,
                 detail="Either flowId or flow JSON must be provided",
@@ -67,7 +70,9 @@ async def start_run(request: RunStartRequest):
         )
 
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"Starting run with flowId: {request.flowId} or flow: {request.flow}")
+            logger.debug(
+                f"Starting run with flowId: {run_request.flowId} or flow: {run_request.flow}"
+            )
 
         return RunStartResponse(runId=run_id, voice=voice_info)
 
@@ -79,7 +84,8 @@ async def start_run(request: RunStartRequest):
 
 
 @router.get("/{run_id}", response_model=RunStatus)
-async def get_run_status(run_id: str):
+@limiter.limit(get_runs_limit)
+async def get_run_status(request: Request, response: Response, run_id: str):
     """
     Get status snapshot for a specific run.
 
@@ -171,7 +177,8 @@ async def generate_sse_events(run_id: str):
 
 
 @router.get("/{run_id}/events")
-async def stream_run_events(run_id: str):
+@limiter.limit(get_runs_limit)
+async def stream_run_events(request: Request, response: Response, run_id: str):
     """
     Stream Server-Sent Events for a specific run.
 

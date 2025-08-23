@@ -16,6 +16,17 @@ class Settings(BaseSettings):
     daily_api_key: str | None = None
     daily_api_url: str = "https://api.daily.co/v1"
 
+    # Rate limiting configuration
+    rate_limit_enabled: bool = True
+    rate_limit_requests: int = 100  # Default requests per minute
+    rate_limit_window: int = 60  # Window in seconds (1 minute)
+
+    # Endpoint-specific rate limits (requests per minute)
+    rate_limit_voice_create: int = 10  # Voice room creation
+    rate_limit_mail_send: int = 30  # Email sending
+    rate_limit_flow_execute: int = 20  # Flow execution
+    rate_limit_runs: int = 50  # Run operations
+
     cors_origins: list[str] = [
         "http://localhost:5173",  # Vite dev server (default)
         "http://localhost:5174",  # Vite dev server (alternative)

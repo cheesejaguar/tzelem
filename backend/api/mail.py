@@ -3,8 +3,10 @@ import os
 import time
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel
+
+from core.rate_limiter import get_mail_limit, limiter
 
 # Import AgentMail client
 try:
@@ -44,7 +46,8 @@ class MailResponse(BaseModel):
 
 
 @router.post("", response_model=MailResponse)
-async def send_mail(mail_data: MailRequest) -> MailResponse:
+@limiter.limit(get_mail_limit)
+async def send_mail(request: Request, response: Response, mail_data: MailRequest) -> MailResponse:
     """
     Send email via AgentMail.
 
@@ -123,7 +126,8 @@ async def send_mail(mail_data: MailRequest) -> MailResponse:
 
 
 @router.get("/health")
-async def mail_health() -> dict[str, Any]:
+@limiter.limit("100 per minute")
+async def mail_health(request: Request, response: Response) -> dict[str, Any]:
     """
     Check mail service health.
 
