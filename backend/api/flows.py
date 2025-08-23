@@ -3,8 +3,10 @@ import os
 from typing import Any
 
 from convex import ConvexClient
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel
+
+from core.rate_limiter import get_flow_limit, limiter
 
 router = APIRouter(prefix="/api/flows", tags=["flows"])
 
@@ -34,7 +36,10 @@ class FlowCreateResponse(BaseModel):
 
 
 @router.post("", response_model=FlowCreateResponse)
-async def create_or_update_flow(flow_data: FlowData) -> FlowCreateResponse:
+@limiter.limit(get_flow_limit)
+async def create_or_update_flow(
+    request: Request, response: Response, flow_data: FlowData
+) -> FlowCreateResponse:
     """
     Store or revise a flow JSON.
 
@@ -62,7 +67,8 @@ async def create_or_update_flow(flow_data: FlowData) -> FlowCreateResponse:
 
 
 @router.get("/{flow_id}")
-async def get_flow(flow_id: str) -> dict[str, Any]:
+@limiter.limit(get_flow_limit)
+async def get_flow(request: Request, response: Response, flow_id: str) -> dict[str, Any]:
     """
     Fetch flow JSON by ID.
 
@@ -89,7 +95,8 @@ async def get_flow(flow_id: str) -> dict[str, Any]:
 
 
 @router.get("")
-async def list_flows() -> list[dict[str, Any]]:
+@limiter.limit(get_flow_limit)
+async def list_flows(request: Request, response: Response) -> list[dict[str, Any]]:
     """
     List all flows.
 

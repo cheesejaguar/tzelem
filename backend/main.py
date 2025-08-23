@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from api.flows import router as flows_router
 from api.mail import router as mail_router
 from api.runs import router as runs_router
 from api.voice import router as voice_router
 from core.config import settings
+from core.rate_limiter import (
+    create_rate_limit_exceeded_handler,
+    limiter,
+)
 
 logging.basicConfig(
     level=logging.DEBUG if settings.debug else logging.INFO,
@@ -23,6 +29,12 @@ app = FastAPI(
     version="0.1.0",
     debug=settings.debug,
 )
+
+# Add rate limiter to the app state
+app.state.limiter = limiter
+
+# Add rate limit exceeded handler
+app.add_exception_handler(RateLimitExceeded, create_rate_limit_exceeded_handler())
 
 app.add_middleware(
     CORSMiddleware,
@@ -39,13 +51,15 @@ app.include_router(mail_router)
 
 
 @app.get("/")
-async def root():
+@limiter.limit("200 per minute")
+async def root(request: Request, response: Response):
     """Root endpoint for health check"""
     return {"status": "ok", "service": "Tzelem Backend"}
 
 
 @app.get("/health")
-async def health_check():
+@limiter.limit("200 per minute")
+async def health_check(request: Request, response: Response):
     """Health check endpoint"""
     return {"status": "healthy", "debug": settings.debug}
 
@@ -65,6 +79,7 @@ async def shutdown_event():
 
 # Handle OPTIONS requests for CORS preflight
 @app.options("/{path:path}")
-async def options_handler(request):
-    """Handle CORS preflight requests"""
+@limiter.exempt
+async def options_handler(request: Request):
+    """Handle CORS preflight requests - exempt from rate limiting"""
     return {"status": "ok"}
