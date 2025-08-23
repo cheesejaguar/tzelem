@@ -234,9 +234,11 @@ class TestMailAPI:
     @pytest.mark.asyncio
     async def test_mail_health_with_client(self):
         """Test health endpoint when mail client is configured."""
-        with patch("api.mail.client", MagicMock()), patch(
-            "api.mail.AgentMail", MagicMock()
-        ), patch("api.mail.AGENTMAIL_API_KEY", "test-key"):
+        with (
+            patch("api.mail.client", MagicMock()),
+            patch("api.mail.AgentMail", MagicMock()),
+            patch("api.mail.AGENTMAIL_API_KEY", "test-key"),
+        ):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test",
@@ -254,8 +256,10 @@ class TestMailAPI:
     @pytest.mark.asyncio
     async def test_mail_health_without_client(self):
         """Test health endpoint when mail client is not configured."""
-        with patch("api.mail.client", None), patch("api.mail.AgentMail", None), patch(
-            "api.mail.AGENTMAIL_API_KEY", None
+        with (
+            patch("api.mail.client", None),
+            patch("api.mail.AgentMail", None),
+            patch("api.mail.AGENTMAIL_API_KEY", None),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
@@ -273,9 +277,12 @@ class TestMailAPI:
     @pytest.mark.asyncio
     async def test_mail_health_mock_mode(self):
         """Test health endpoint in mock mode."""
-        with patch("api.mail.client", None), patch("api.mail.AgentMail", MagicMock()), patch(
-            "api.mail.AGENTMAIL_API_KEY", None
-        ), patch.dict(os.environ, {"DEBUG": "true"}):
+        with (
+            patch("api.mail.client", None),
+            patch("api.mail.AgentMail", MagicMock()),
+            patch("api.mail.AGENTMAIL_API_KEY", None),
+            patch.dict(os.environ, {"DEBUG": "true"}),
+        ):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test",
