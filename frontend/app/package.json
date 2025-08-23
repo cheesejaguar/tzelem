@@ -12,7 +12,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "type-check": "tsc --noEmit",
+    "typecheck": "tsc -b --pretty false",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\""
   },
@@ -54,6 +54,9 @@
     "vaul": "^1.1.1",
     "zod": "^3.24.1",
     "zustand": "^5.0.2"
+  },
+  "engines": {
+    "node": "24.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
