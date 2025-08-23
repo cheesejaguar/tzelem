@@ -1,1 +1,8 @@
-# tzelem
+# Tzelem
+Inspired by the ancient Aramaic word for “image”, is a dynamic multi-agent orchestration platform that builds AI teams in your image to deliver real work with enterprise-grade control. Give Tzelem an objective and a budget; it assembles specialized agents, coordinates their workflows, and ships results with real-time observability, auditability, and strict spend guardrails. Unlike single “copilot” tools, Tzelem scales from quick tasks to complex, cross-functional projects and slots cleanly into modern SaaS stacks with customizable policies, permissions, and data boundaries.
+
+For enterprises, Tzelem is production-ready and fully customizable. For this hackathon, we’ll demo end-to-end execution: define a goal, cap spend, and watch an agent organization plan, collaborate, and deliver—while you steer like a CEO. With Tzelem, you don’t just have a personal assistant, you operate like a billion-dollar CEO with an on-demand staff that can do almost anything, safely, observably, and within budget.
+
+For voice driven products, Tzelem is the thing you need to have full control over your agents in production. From highly agentic agents that interact with your API’s, to very controllable customer service agents, Tzelem does it all- workflow configuration, secrets management, MCP connection, observability, and data collection built in.
+
+Tzelem — *agents in your image, outcomes on your budget.*
