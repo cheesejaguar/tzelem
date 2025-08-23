@@ -32,7 +32,9 @@ print(f"[DEBUG] OPENAI_API_KEY loaded: {'Yes' if openai_key else 'No'}")
 if openai_key:
     print(f"[DEBUG] OPENAI_API_KEY preview: {openai_key[:10]}...")
 else:
-    print("[DEBUG] Available env vars starting with OPENAI:", [k for k in os.environ.keys() if k.startswith("OPENAI")])
+    print("[DEBUG] Available env vars starting with OPENAI:", [k for k in os.environ if k.startswith("OPENAI")])
+
+import contextlib
 
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
@@ -951,7 +953,8 @@ class ProductivityFlowAgent:
     async def run_flow(self) -> None:
         """Run the productivity flow."""
         if not self.task:
-            raise RuntimeError("Task not initialized. Call create_flow_pipeline first.")
+            msg = "Task not initialized. Call create_flow_pipeline first."
+            raise RuntimeError(msg)
 
         runner = PipelineRunner()
         await runner.run(self.task)
@@ -973,10 +976,8 @@ class ProductivityFlowAgent:
         """Clean up flow resources."""
         if self.task and not self.task.done():
             self.task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self.task
-            except asyncio.CancelledError:
-                pass
 
         # Clear user data for this session
         productivity_data.tasks.clear()

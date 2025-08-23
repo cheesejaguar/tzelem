@@ -30,7 +30,9 @@ print(f"[DEBUG] OPENAI_API_KEY loaded: {'Yes' if openai_key else 'No'}")
 if openai_key:
     print(f"[DEBUG] OPENAI_API_KEY preview: {openai_key[:10]}...")
 else:
-    print("[DEBUG] Available env vars starting with OPENAI:", [k for k in os.environ.keys() if k.startswith("OPENAI")])
+    print("[DEBUG] Available env vars starting with OPENAI:", [k for k in os.environ if k.startswith("OPENAI")])
+
+import contextlib
 
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
@@ -399,7 +401,8 @@ class JSONFlowAgent:
 
         # Validate required fields
         if "paradigm" not in config:
-            raise ValueError("JSON configuration must include 'paradigm' field")
+            msg = "JSON configuration must include 'paradigm' field"
+            raise ValueError(msg)
 
         json_flow_data.current_config = config
         json_flow_data.paradigm = config["paradigm"]
@@ -412,13 +415,17 @@ class JSONFlowAgent:
             # Validate sub-agents
             for i, agent in enumerate(json_flow_data.sub_agents):
                 if "type" not in agent:
-                    raise ValueError(f"Sub-agent {i} missing 'type' field")
+                    msg = f"Sub-agent {i} missing 'type' field"
+                    raise ValueError(msg)
                 if agent["type"] not in ["browser-agent", "mail-agent"]:
-                    raise ValueError(f"Sub-agent {i} has invalid type: {agent['type']}")
+                    msg = f"Sub-agent {i} has invalid type: {agent['type']}"
+                    raise ValueError(msg)
                 if "prompt" not in agent:
-                    raise ValueError(f"Sub-agent {i} missing 'prompt' field")
+                    msg = f"Sub-agent {i} missing 'prompt' field"
+                    raise ValueError(msg)
                 if agent["type"] == "browser-agent" and "url" not in agent:
-                    raise ValueError(f"Browser agent {i} missing 'url' field")
+                    msg = f"Browser agent {i} missing 'url' field"
+                    raise ValueError(msg)
 
         logger.info(f"Configuration validated successfully. Paradigm: {json_flow_data.paradigm}")
 
@@ -516,7 +523,8 @@ class JSONFlowAgent:
     async def run_flow(self) -> None:
         """Run the JSON flow."""
         if not self.task:
-            raise RuntimeError("Task not initialized. Call create_flow_pipeline first.")
+            msg = "Task not initialized. Call create_flow_pipeline first."
+            raise RuntimeError(msg)
 
         runner = PipelineRunner()
         await runner.run(self.task)
@@ -534,10 +542,8 @@ class JSONFlowAgent:
         """Clean up flow resources."""
         if self.task and not self.task.done():
             self.task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self.task
-            except asyncio.CancelledError:
-                pass
 
         # Reset configuration data
         json_flow_data.current_config = DEFAULT_JSON_CONFIG

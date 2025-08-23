@@ -13,7 +13,7 @@ from api.flows import FlowData, router
 @pytest.fixture
 def client() -> TestClient:
     """Create test client with flows router."""
-    from fastapi import FastAPI  # noqa: PLC0415
+    from fastapi import FastAPI
 
     app = FastAPI()
     app.include_router(router)
