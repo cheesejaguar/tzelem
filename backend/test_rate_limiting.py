@@ -9,7 +9,7 @@ from datetime import datetime
 import requests
 
 
-def test_rate_limit(endpoint: str, limit: int, window: int):
+def check_rate_limit(endpoint: str, limit: int, window: int):
     """
     Test rate limiting for a specific endpoint.
 
@@ -101,7 +101,7 @@ def test_endpoint_specific_limits():
     print(f"Started at: {datetime.now()}")
 
     # Test health endpoint (high limit)
-    test_rate_limit("/health", limit=200, window=60)
+    check_rate_limit("/health", limit=200, window=60)
 
     # Wait a bit between tests
     print("\n⏳ Waiting 2 seconds before next test...")
