@@ -63,7 +63,7 @@ class MailAPITester:
         
     def print_info(self, text: str):
         """Print info message"""
-        print(f"{Colors.OKBLUE}ℹ️  {text}{Colors.ENDC}")
+        print(f"{Colors.OKBLUE}ℹ️  {text}{Colors.ENDC}")  # noqa: RUF001
     
     def check_backend_running(self) -> bool:
         """Check if the backend server is running"""

@@ -433,7 +433,7 @@ async def main():
     
     # Save results if requested
     if args.output:
-        with open(args.output, "w") as f:
+        with open(args.output, "w") as f:  # noqa: PTH123
             json.dump(results, f, indent=2, default=str)
         print(f"\n📁 Results saved to: {args.output}")
 

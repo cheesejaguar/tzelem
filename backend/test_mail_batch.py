@@ -112,7 +112,7 @@ class BatchMailTester:
     def send_batch(self,
                    emails: list[dict[str, Any]],
                    delay_between: float = 0.5,
-                   show_progress: bool = True) -> dict[str, Any]:
+                   show_progress: bool = True) -> dict[str, Any]:  # noqa: FBT001, FBT002
         """
         Send a batch of emails
         
@@ -327,7 +327,7 @@ def main():
             print(f"   API Key Configured: {health.get('api_key_configured')}")
             if not health.get("api_key_configured"):
                 print("   ⚠️  Running in mock mode (no actual emails will be sent)")
-    except Exception:
+    except Exception:  # noqa: S110
         pass
     
     # Run appropriate test

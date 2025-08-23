@@ -89,7 +89,7 @@ This is an automated test email from Tzelem's mail testing script.
             try:
                 error_data = response.json()
                 print(f"   Error Detail: {error_data.get('detail', 'Unknown error')}")
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
                 
     except requests.exceptions.ConnectionError:
