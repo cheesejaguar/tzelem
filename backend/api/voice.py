@@ -56,7 +56,7 @@ async def create_voice_room():
         if settings.debug:
             print(f"[DEBUG] Room created: {room_url}")
 
-        return RoomResponse(room=room_url, joinToken=token)
+        return RoomResponse(room=room_url, join_token=token)
 
     except Exception as e:
         logger.error(f"Failed to create room: {e!s}")
