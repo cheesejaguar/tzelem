@@ -10,6 +10,10 @@ backend/uv.lock
 backend/*.md
 backend/requirements 2.txt
 
+# Heavy dependencies not needed for basic API
+backend/core/JSON_flow_agent.py
+backend/core/productivity_flow_agent.py
+
 # Frontend development files
 frontend/app/node_modules/
 frontend/app/.next/
@@ -30,6 +34,11 @@ frontend/app/.nyc_output/
 *.md
 docs/
 scripts/
+CLAUDE.md
+DEPLOYMENT.md
+
+# Development files
+requirements-vercel.txt
 
 # Infrastructure
 infra/

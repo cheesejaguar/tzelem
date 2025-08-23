@@ -5,9 +5,20 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
 from core.config import settings
-from core.JSON_flow_agent import JSONFlowAgent
-from core.productivity_flow_agent import productivity_flow_agent
 from services.daily_service import create_room
+
+# Make heavy dependencies optional for serverless deployment
+try:
+    from core.JSON_flow_agent import JSONFlowAgent
+    from core.JSON_flow_agent_sequential import SequentialJSONFlowAgent
+    from core.productivity_flow_agent import productivity_flow_agent
+    PIPECAT_AVAILABLE = True
+except ImportError:
+    JSONFlowAgent = None
+    SequentialJSONFlowAgent = None
+    productivity_flow_agent = None
+    PIPECAT_AVAILABLE = False
+    logging.warning("Pipecat dependencies not available - voice agent features disabled")
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
 
@@ -16,6 +27,7 @@ logger = logging.getLogger(__name__)
 # Store active agents
 active_agents = {}
 active_json_agents = {}
+active_sequential_agents = {}
 
 
 class RoomResponse(BaseModel):
@@ -40,6 +52,18 @@ class JSONFlowRoomResponse(BaseModel):
     agentStatus: str
     paradigm: str
     subAgentsCount: int
+
+
+class SequentialFlowRoomRequest(BaseModel):
+    json_config: dict | None = None
+
+
+class SequentialFlowRoomResponse(BaseModel):
+    room: str
+    joinToken: str
+    agentStatus: str
+    paradigm: str
+    agentsCount: int
 
 
 @router.post("/rooms", response_model=RoomResponse)
@@ -99,6 +123,42 @@ async def run_json_flow_agent(room_url: str, token: str, json_config: dict = Non
             active_json_agents[room_url]["status"] = "error"
 
 
+async def run_sequential_flow_agent(room_url: str, token: str, json_config: dict = None):
+    """Background task to run the sequential JSON flow agent."""
+    try:
+        # Create a new instance with the provided config
+        agent = SequentialJSONFlowAgent(json_config)
+
+        # Create and configure the flow pipeline
+        flow_info = await agent.create_flow_pipeline(
+            room_url=room_url,
+            token=token,
+        )
+
+        # Store the agent info
+        active_sequential_agents[room_url] = {
+            "agent": agent,
+            "status": "running",
+            "paradigm": flow_info["paradigm"],
+            "agents_count": flow_info["agents_count"],
+            "configuration": flow_info["configuration"],
+        }
+
+        logger.info(f"Starting Sequential JSON flow agent for room: {room_url}")
+        logger.info(f"Agent paradigm: {flow_info['paradigm']}")
+
+        # Run the agent flow
+        await agent.run_flow()
+
+    except asyncio.CancelledError:
+        logger.info(f"Sequential JSON flow agent cancelled for room: {room_url}")
+        active_sequential_agents.pop(room_url, None)
+    except Exception as e:
+        logger.error(f"Error running Sequential JSON flow agent for room {room_url}: {e}")
+        if room_url in active_sequential_agents:
+            active_sequential_agents[room_url]["status"] = "error"
+
+
 async def run_productivity_agent(room_url: str, token: str):
     """Background task to run the productivity agent."""
     try:
@@ -139,6 +199,12 @@ async def create_productivity_room(background_tasks: BackgroundTasks):
     Returns:
         ProductivityRoomResponse: Object containing room details and agent info
     """
+    if not PIPECAT_AVAILABLE:
+        raise HTTPException(
+            status_code=503, 
+            detail="Voice agent features are not available in this deployment"
+        )
+        
     try:
         room_url, token = await create_room()
 
@@ -179,6 +245,12 @@ async def create_json_flow_room(
     Returns:
         JSONFlowRoomResponse: Object containing room details and agent info
     """
+    if not PIPECAT_AVAILABLE:
+        raise HTTPException(
+            status_code=503, 
+            detail="Voice agent features are not available in this deployment"
+        )
+        
     try:
         room_url, token = await create_room()
 
@@ -214,6 +286,65 @@ async def create_json_flow_room(
     except Exception as e:
         logger.error(f"Failed to create JSON flow room: {e!s}")
         raise HTTPException(status_code=500, detail="Failed to create JSON flow room")
+
+
+@router.post("/sequential-flow-rooms", response_model=SequentialFlowRoomResponse)
+async def create_sequential_flow_room(
+    request: SequentialFlowRoomRequest,
+    background_tasks: BackgroundTasks,
+):
+    """
+    Create a new Daily WebRTC room with Sequential JSON flow agent.
+
+    Args:
+        request: Optional JSON configuration for the sequential agent
+
+    Returns:
+        SequentialFlowRoomResponse: Object containing room details and agent info
+    """
+    try:
+        room_url, token = await create_room()
+
+        # Start the Sequential JSON flow agent in the background
+        background_tasks.add_task(
+            run_sequential_flow_agent,
+            room_url,
+            token,
+            request.json_config,
+        )
+
+        if settings.debug:
+            print(f"[DEBUG] Sequential flow room created: {room_url}")
+            if request.json_config:
+                print(f"[DEBUG] Using custom config: {request.json_config}")
+
+        # Default values for response (will be updated when agent starts)
+        paradigm = "sequential"
+        agents_count = 0
+
+        if request.json_config:
+            paradigm = request.json_config.get("paradigm", "sequential")
+            # Count all agents in the tree
+            if "startingAgent" in request.json_config:
+                def count_agents(agent):
+                    count = 1
+                    if "children" in agent:
+                        for child in agent["children"]:
+                            count += count_agents(child)
+                    return count
+                agents_count = count_agents(request.json_config["startingAgent"])
+
+        return SequentialFlowRoomResponse(
+            room=room_url,
+            joinToken=token,
+            agentStatus="starting",
+            paradigm=paradigm,
+            agentsCount=agents_count,
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to create sequential flow room: {e!s}")
+        raise HTTPException(status_code=500, detail="Failed to create sequential flow room")
 
 
 @router.get("/rooms/{room_url}/status")
@@ -259,6 +390,25 @@ async def get_room_status(room_url: str):
                 "configuration": agent_info["configuration"],
                 "flow_data": flow_data,
                 "message": "JSON flow agent is active and ready to help!",
+            }
+
+        # Check for Sequential flow agent
+        if decoded_room_url in active_sequential_agents:
+            agent_info = active_sequential_agents[decoded_room_url]
+            agent = agent_info["agent"]
+
+            # Get flow data from the agent
+            flow_data = agent.get_flow_data()
+
+            return {
+                "room_url": decoded_room_url,
+                "agent_type": "sequential_flow",
+                "agent_status": agent_info["status"],
+                "paradigm": agent_info["paradigm"],
+                "agents_count": agent_info["agents_count"],
+                "configuration": agent_info["configuration"],
+                "flow_data": flow_data,
+                "message": "Sequential JSON flow agent is active and ready to help!",
             }
 
         return {
@@ -311,6 +461,23 @@ async def cleanup_room(room_url: str):
             return {
                 "message": f"JSON flow room {decoded_room_url} cleaned up successfully",
                 "agent_type": "json_flow",
+                "status": "cleaned_up",
+            }
+
+        # Check for Sequential flow agent
+        if decoded_room_url in active_sequential_agents:
+            agent_info = active_sequential_agents[decoded_room_url]
+            agent = agent_info["agent"]
+
+            # Clean up the agent
+            await agent.cleanup()
+
+            # Remove from active agents
+            del active_sequential_agents[decoded_room_url]
+
+            return {
+                "message": f"Sequential flow room {decoded_room_url} cleaned up successfully",
+                "agent_type": "sequential_flow",
                 "status": "cleaned_up",
             }
 
