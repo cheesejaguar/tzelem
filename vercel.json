@@ -3,7 +3,7 @@
   "buildCommand": "npm ci --prefix frontend/app && npm run build --prefix frontend/app",
   "outputDirectory": "frontend/app/dist",
   "functions": {
-    "api/**/*.py": { "runtime": "python3.12" }
+    "api/**/*.py": { "runtime": "python@3.12" }
   },
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/:path*" },
