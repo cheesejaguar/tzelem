@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, ReactNode } from "react";
+import React, { createContext, useContext, useReducer, ReactNode, useCallback, useState } from "react";
 import {
   FlowState,
   FlowAction,
@@ -6,7 +6,11 @@ import {
   FlowEdge,
   FlowSnapshot,
   ValidationError,
+  FlowJSON,
 } from "@/lib/types/flow";
+import { createOrUpdateFlow, getFlow, listFlows, convertFlowDataToJSON } from "@/lib/api/flows";
+import { exportFlow } from "@/features/flow/utils/flowExport";
+import { toast } from "sonner";
 
 const initialState: FlowState = {
   nodes: [],
@@ -330,6 +334,13 @@ function validateFlow(nodes: FlowNode[], edges: FlowEdge[]): ValidationError[] {
 interface FlowContextType {
   state: FlowState;
   dispatch: React.Dispatch<FlowAction>;
+  saveFlow: () => Promise<string | null>;
+  loadFlow: (flowId: string) => Promise<void>;
+  loadFlowList: () => Promise<Array<{ id: string; name: string; updated?: string }>>;
+  exportFlowToFile: () => void;
+  importFlowFromFile: (file: File) => Promise<void>;
+  isSaving: boolean;
+  isLoading: boolean;
 }
 
 const FlowContext = createContext<FlowContextType | null>(null);
@@ -340,9 +351,121 @@ interface FlowProviderProps {
 
 export function FlowProvider({ children }: FlowProviderProps) {
   const [state, dispatch] = useReducer(flowReducer, initialState);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Save current flow to backend
+  const saveFlow = useCallback(async (): Promise<string | null> => {
+    setIsSaving(true);
+    try {
+      const flowJSON = exportFlow(state.nodes, state.edges);
+      const response = await createOrUpdateFlow(flowJSON);
+      dispatch({ type: "SAVE_SNAPSHOT" });
+      return response.flowId;
+    } catch (error) {
+      console.error("Failed to save flow:", error);
+      toast.error("Failed to save flow");
+      return null;
+    } finally {
+      setIsSaving(false);
+    }
+  }, [state.nodes, state.edges]);
+
+  // Load flow from backend
+  const loadFlow = useCallback(async (flowId: string) => {
+    setIsLoading(true);
+    try {
+      const flowData = await getFlow(flowId);
+      const flowJSON = convertFlowDataToJSON(flowData);
+      dispatch({ type: "IMPORT_FLOW", payload: flowJSON });
+      toast.success("Flow loaded successfully");
+    } catch (error) {
+      console.error("Failed to load flow:", error);
+      toast.error("Failed to load flow");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Load list of flows from backend
+  const loadFlowList = useCallback(async () => {
+    try {
+      const flows = await listFlows();
+      return flows.map(flow => ({
+        id: flow.id,
+        name: flow.name,
+        updated: flow.updated,
+      }));
+    } catch (error) {
+      console.error("Failed to load flow list:", error);
+      toast.error("Failed to load flow list");
+      return [];
+    }
+  }, []);
+
+  // Export flow to JSON file
+  const exportFlowToFile = useCallback(() => {
+    const flowJSON = exportFlow(state.nodes, state.edges);
+    const jsonString = JSON.stringify(flowJSON, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${flowJSON.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Flow exported successfully');
+  }, [state.nodes, state.edges]);
+
+  // Import flow from JSON file
+  const importFlowFromFile = useCallback(async (file: File) => {
+    return new Promise<void>((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          const content = e.target?.result as string;
+          const json = JSON.parse(content);
+          
+          // Validate the JSON structure
+          if (!json.version || !json.nodes || !json.edges) {
+            throw new Error('Invalid flow file format');
+          }
+          
+          dispatch({ type: "IMPORT_FLOW", payload: json as FlowJSON });
+          toast.success('Flow imported successfully');
+          resolve();
+        } catch (error) {
+          toast.error('Failed to import flow: Invalid file format');
+          reject(error);
+        }
+      };
+      
+      reader.onerror = () => {
+        toast.error('Failed to read file');
+        reject(new Error('Failed to read file'));
+      };
+      
+      reader.readAsText(file);
+    });
+  }, []);
 
   return (
-    <FlowContext.Provider value={{ state, dispatch }}>
+    <FlowContext.Provider value={{ 
+      state, 
+      dispatch, 
+      saveFlow, 
+      loadFlow, 
+      loadFlowList,
+      exportFlowToFile,
+      importFlowFromFile,
+      isSaving,
+      isLoading
+    }}>
       {children}
     </FlowContext.Provider>
   );

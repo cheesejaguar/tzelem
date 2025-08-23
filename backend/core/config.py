@@ -16,7 +16,13 @@ class Settings(BaseSettings):
     daily_api_key: str | None = None
     daily_api_url: str = "https://api.daily.co/v1"
 
-    cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+    cors_origins: list[str] = [
+        "http://localhost:5173",  # Vite dev server
+        "http://localhost:3000",  # Alternative dev port
+        "https://staging.tzlm.io",  # Staging environment
+        "https://tzlm.io",  # Production environment
+        "https://*.vercel.app",  # Vercel preview deployments
+    ]
 
     class Config:
         env_file = str(ENV_FILE) if ENV_FILE.exists() else ".env"
