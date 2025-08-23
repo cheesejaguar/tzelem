@@ -10,11 +10,11 @@ import requests
 
 def send_test_email():
     """Send a test email via the API"""
-    
+
     # API endpoint
     base_url = "http://localhost:8000"  # Adjust if your backend runs on a different port
     endpoint = f"{base_url}/api/mail"
-    
+
     # Email data
     email_data = {
         "to": "hello@tzlm.io",
@@ -56,22 +56,19 @@ If you received this email, the mail API is working correctly!
 ---
 This is an automated test email from Tzelem's mail testing script.
         """,
-        "from_name": "Tzelem Test Script"
+        "from_name": "Tzelem Test Script",
     }
-    
+
     try:
         print("🚀 Sending test email to hello@tzlm.io...")
         print(f"   Endpoint: {endpoint}")
         print(f"   Subject: {email_data['subject']}")
-        
+
         # Send the request
         response = requests.post(
-            endpoint,
-            json=email_data,
-            headers={"Content-Type": "application/json"},
-            timeout=10
+            endpoint, json=email_data, headers={"Content-Type": "application/json"}, timeout=10
         )
-        
+
         # Check response
         if response.status_code == 200:
             result = response.json()
@@ -84,14 +81,14 @@ This is an automated test email from Tzelem's mail testing script.
             print("❌ Failed to send email")
             print(f"   Status Code: {response.status_code}")
             print(f"   Response: {response.text}")
-            
+
             # Parse error if JSON
             try:
                 error_data = response.json()
                 print(f"   Error Detail: {error_data.get('detail', 'Unknown error')}")
             except Exception:  # noqa: S110
                 pass
-                
+
     except requests.exceptions.ConnectionError:
         print("❌ Connection Error: Could not connect to the backend server")
         print("   Make sure the backend is running on http://localhost:8000")
@@ -104,11 +101,11 @@ def check_health():
     """Check the health of the mail service"""
     base_url = "http://localhost:8000"
     health_endpoint = f"{base_url}/api/mail/health"
-    
+
     try:
         print("\n📋 Checking mail service health...")
         response = requests.get(health_endpoint, timeout=5)
-        
+
         if response.status_code == 200:
             health = response.json()
             print(f"   Status: {health.get('status')}")
@@ -128,19 +125,18 @@ if __name__ == "__main__":
     print("=" * 60)
     print("TZELEM MAIL API TEST SCRIPT")
     print("=" * 60)
-    
+
     # First check health
     health = check_health()
-    
+
     # Send test email
     print()
     send_test_email()
-    
+
     print("\n" + "=" * 60)
     print("Test completed!")
-    
+
     if health and not health.get("api_key_configured"):
         print("\n⚠️  Note: AGENTMAIL_API_KEY is not configured.")
         print("   Set the environment variable to enable real email sending.")
         print("   export AGENTMAIL_API_KEY='your-api-key-here'")
-

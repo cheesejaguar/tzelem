@@ -15,7 +15,7 @@ import requests
 
 class BatchMailTester:
     """Batch testing for mail API"""
-    
+
     def __init__(self, base_url: str = "http://localhost:8000"):
         self.base_url = base_url
         self.mail_endpoint = f"{base_url}/api/mail"
@@ -23,11 +23,11 @@ class BatchMailTester:
         self.sent_count = 0
         self.failed_count = 0
         self.start_time = None
-        
+
     def generate_test_emails(self, count: int, recipient: str) -> list[dict[str, Any]]:
         """Generate a list of test emails with varied content"""
         emails = []
-        
+
         # Email templates
         templates = [
             {
@@ -43,7 +43,7 @@ class BatchMailTester:
                     <li>Monitor workflows in real-time</li>
                 </ul>
                 """,
-                "text": "Welcome to Tzelem!\n\nWe're excited to have you on board..."
+                "text": "Welcome to Tzelem!\n\nWe're excited to have you on board...",
             },
             {
                 "type": "notification",
@@ -54,7 +54,7 @@ class BatchMailTester:
                 <p><strong>Duration:</strong> 2 minutes 34 seconds</p>
                 <p><strong>Status:</strong> ✅ Success</p>
                 """,
-                "text": "Your workflow completed successfully..."
+                "text": "Your workflow completed successfully...",
             },
             {
                 "type": "alert",
@@ -64,7 +64,7 @@ class BatchMailTester:
                 <p>Your project has reached 80% of its allocated budget.</p>
                 <p>Consider reviewing your spending limits.</p>
                 """,
-                "text": "Budget Alert: 80% threshold reached..."
+                "text": "Budget Alert: 80% threshold reached...",
             },
             {
                 "type": "report",
@@ -77,7 +77,7 @@ class BatchMailTester:
                     <tr><td>Total Spend:</td><td>$127.50</td></tr>
                 </table>
                 """,
-                "text": "Weekly Report: 42 workflows, 18 agents, $127.50 spent"
+                "text": "Weekly Report: 42 workflows, 18 agents, $127.50 spent",
             },
             {
                 "type": "update",
@@ -90,55 +90,50 @@ class BatchMailTester:
                     <li>Real-time collaboration</li>
                 </ul>
                 """,
-                "text": "New features: Voice interface, Enhanced flow builder..."
-            }
+                "text": "New features: Voice interface, Enhanced flow builder...",
+            },
         ]
-        
+
         for i in range(count):
             template = random.choice(templates)  # noqa: S311
             timestamp = datetime.now() + timedelta(seconds=i)
-            
+
             email = {
                 "to": recipient,
-                "subject": f"[Batch Test {i+1}/{count}] {template['subject']}",
-                "html": template["html"] + f"\n<p style='color:#999;font-size:11px;'>Test email {i+1} sent at {timestamp.isoformat()}</p>",
-                "text": template["text"] + f"\n\nTest email {i+1} sent at {timestamp.isoformat()}",
-                "from_name": f"Tzelem Batch Test ({template['type'].title()})"
+                "subject": f"[Batch Test {i + 1}/{count}] {template['subject']}",
+                "html": template["html"]
+                + f"\n<p style='color:#999;font-size:11px;'>Test email {i + 1} sent at {timestamp.isoformat()}</p>",
+                "text": template["text"]
+                + f"\n\nTest email {i + 1} sent at {timestamp.isoformat()}",
+                "from_name": f"Tzelem Batch Test ({template['type'].title()})",
             }
             emails.append(email)
-            
+
         return emails
-    
-    def send_batch(self,
-                   emails: list[dict[str, Any]],
-                   delay_between: float = 0.5,
-                   show_progress: bool = True) -> dict[str, Any]:  # noqa: FBT001, FBT002
+
+    def send_batch(
+        self, emails: list[dict[str, Any]], delay_between: float = 0.5, show_progress: bool = True
+    ) -> dict[str, Any]:  # noqa: FBT001, FBT002
         """
         Send a batch of emails
-        
+
         Args:
             emails: List of email dictionaries
             delay_between: Delay in seconds between emails
             show_progress: Show progress bar
-            
+
         Returns:
             Dictionary with batch results
         """
         total = len(emails)
-        results = {
-            "total": total,
-            "sent": 0,
-            "failed": 0,
-            "errors": [],
-            "duration": 0
-        }
-        
+        results = {"total": total, "sent": 0, "failed": 0, "errors": [], "duration": 0}
+
         print(f"\n📧 Sending batch of {total} emails...")
         print(f"   Delay between sends: {delay_between}s")
         print(f"   Estimated duration: {total * delay_between:.1f}s\n")
-        
+
         self.start_time = time.time()
-        
+
         for i, email_data in enumerate(emails, 1):
             # Progress indicator
             if show_progress:
@@ -147,72 +142,74 @@ class BatchMailTester:
                 filled = int(bar_length * i / total)
                 bar = "█" * filled + "░" * (bar_length - filled)
                 print(f"\r[{bar}] {progress:.1f}% ({i}/{total})", end="", flush=True)
-            
+
             try:
                 # Send email
                 response = requests.post(
                     self.mail_endpoint,
                     json=email_data,
                     headers={"Content-Type": "application/json"},
-                    timeout=5
+                    timeout=5,
                 )
-                
+
                 if response.status_code == 200:
                     results["sent"] += 1
                     self.sent_count += 1
                 else:
                     results["failed"] += 1
                     self.failed_count += 1
-                    results["errors"].append({
-                        "email": i,
-                        "to": email_data["to"],
-                        "status": response.status_code,
-                        "error": response.text[:100]
-                    })
-                    
+                    results["errors"].append(
+                        {
+                            "email": i,
+                            "to": email_data["to"],
+                            "status": response.status_code,
+                            "error": response.text[:100],
+                        }
+                    )
+
             except Exception as e:
                 results["failed"] += 1
                 self.failed_count += 1
-                results["errors"].append({
-                    "email": i,
-                    "to": email_data["to"],
-                    "error": str(e)[:100]
-                })
-            
+                results["errors"].append(
+                    {"email": i, "to": email_data["to"], "error": str(e)[:100]}
+                )
+
             # Delay between emails (except for the last one)
             if i < total and delay_between > 0:
                 time.sleep(delay_between)
-        
+
         results["duration"] = time.time() - self.start_time
-        
+
         if show_progress:
             print()  # New line after progress bar
-        
+
         return results
-    
+
     def print_results(self, results: dict[str, Any]):
         """Print batch results"""
         print(f"\n{'=' * 50}")
         print("📊 Batch Results")
         print(f"{'=' * 50}")
-        
+
         print(f"Total Emails: {results['total']}")
         print(f"✅ Sent: {results['sent']}")
         print(f"❌ Failed: {results['failed']}")
         print(f"⏱️  Duration: {results['duration']:.2f}s")
         print(f"📈 Rate: {results['total'] / results['duration']:.2f} emails/second")
-        
+
         if results["errors"]:
             print(f"\n⚠️  Errors ({len(results['errors'])} total):")
             for error in results["errors"][:5]:  # Show first 5 errors
-                print(f"   • Email {error.get('email', 'N/A')}: {error.get('error', 'Unknown error')}")
+                print(
+                    f"   • Email {error.get('email', 'N/A')}: {error.get('error', 'Unknown error')}"
+                )
             if len(results["errors"]) > 5:
                 print(f"   ... and {len(results['errors']) - 5} more errors")
-        
+
         # Success rate
         success_rate = (results["sent"] / results["total"] * 100) if results["total"] > 0 else 0
         print(f"\n📊 Success Rate: {success_rate:.1f}%")
-        
+
         if success_rate == 100:
             print("🎉 Perfect batch! All emails sent successfully.")
         elif success_rate >= 90:
@@ -221,15 +218,17 @@ class BatchMailTester:
             print("⚠️  Moderate issues detected. Check your configuration.")
         else:
             print("❌ Significant issues. Please check server logs.")
-    
-    def run_stress_test(self,
-                       recipient: str,
-                       total_emails: int = 100,
-                       batch_size: int = 10,
-                       delay_between_batches: float = 2.0):
+
+    def run_stress_test(
+        self,
+        recipient: str,
+        total_emails: int = 100,
+        batch_size: int = 10,
+        delay_between_batches: float = 2.0,
+    ):
         """
         Run a stress test with multiple batches
-        
+
         Args:
             recipient: Email recipient
             total_emails: Total number of emails to send
@@ -243,43 +242,43 @@ class BatchMailTester:
         print(f"Batch size: {batch_size}")
         print(f"Number of batches: {total_emails // batch_size}")
         print(f"Delay between batches: {delay_between_batches}s")
-        
+
         all_results = []
         emails_sent = 0
-        
+
         while emails_sent < total_emails:
             remaining = total_emails - emails_sent
             current_batch_size = min(batch_size, remaining)
-            
+
             print(f"\n📦 Batch {len(all_results) + 1}")
-            
+
             # Generate and send batch
             emails = self.generate_test_emails(current_batch_size, recipient)
             results = self.send_batch(emails, delay_between=0.1, show_progress=True)
             all_results.append(results)
-            
+
             emails_sent += current_batch_size
-            
+
             # Delay between batches
             if emails_sent < total_emails:
                 print(f"⏸️  Waiting {delay_between_batches}s before next batch...")
                 time.sleep(delay_between_batches)
-        
+
         # Print overall results
         print(f"\n{'=' * 60}")
         print("📊 STRESS TEST RESULTS")
         print(f"{'=' * 60}")
-        
+
         total_sent = sum(r["sent"] for r in all_results)
         total_failed = sum(r["failed"] for r in all_results)
         total_duration = sum(r["duration"] for r in all_results)
-        
+
         print(f"Total Emails Attempted: {total_emails}")
         print(f"✅ Successfully Sent: {total_sent}")
         print(f"❌ Failed: {total_failed}")
         print(f"⏱️  Total Duration: {total_duration:.2f}s")
         print(f"📈 Average Rate: {total_emails / total_duration:.2f} emails/second")
-        
+
         success_rate = (total_sent / total_emails * 100) if total_emails > 0 else 0
         print(f"\n📊 Overall Success Rate: {success_rate:.1f}%")
 
@@ -287,24 +286,35 @@ class BatchMailTester:
 def main():
     """Main function"""
     parser = argparse.ArgumentParser(description="Batch email testing for Tzelem mail API")
-    parser.add_argument("--recipient", "-r", default="test@tzlm.io",
-                       help="Email recipient (default: test@tzlm.io)")
-    parser.add_argument("--count", "-c", type=int, default=10,
-                       help="Number of emails to send (default: 10)")
-    parser.add_argument("--delay", "-d", type=float, default=0.5,
-                       help="Delay between emails in seconds (default: 0.5)")
-    parser.add_argument("--stress", "-s", action="store_true",
-                       help="Run stress test mode")
-    parser.add_argument("--batch-size", "-b", type=int, default=10,
-                       help="Batch size for stress test (default: 10)")
-    parser.add_argument("--base-url", "-u", default="http://localhost:8000",
-                       help="Backend base URL (default: http://localhost:8000)")
-    
+    parser.add_argument(
+        "--recipient", "-r", default="test@tzlm.io", help="Email recipient (default: test@tzlm.io)"
+    )
+    parser.add_argument(
+        "--count", "-c", type=int, default=10, help="Number of emails to send (default: 10)"
+    )
+    parser.add_argument(
+        "--delay",
+        "-d",
+        type=float,
+        default=0.5,
+        help="Delay between emails in seconds (default: 0.5)",
+    )
+    parser.add_argument("--stress", "-s", action="store_true", help="Run stress test mode")
+    parser.add_argument(
+        "--batch-size", "-b", type=int, default=10, help="Batch size for stress test (default: 10)"
+    )
+    parser.add_argument(
+        "--base-url",
+        "-u",
+        default="http://localhost:8000",
+        help="Backend base URL (default: http://localhost:8000)",
+    )
+
     args = parser.parse_args()
-    
+
     # Create tester
     tester = BatchMailTester(args.base_url)
-    
+
     # Check backend
     try:
         response = requests.get(f"{args.base_url}/health", timeout=2)
@@ -316,7 +326,7 @@ def main():
         print(f"   Make sure it's running at {args.base_url}")
         print("   Start with: cd backend && python main.py")
         return
-    
+
     # Check mail health
     try:
         response = requests.get(tester.health_endpoint, timeout=2)
@@ -329,24 +339,23 @@ def main():
                 print("   ⚠️  Running in mock mode (no actual emails will be sent)")
     except Exception:  # noqa: S110
         pass
-    
+
     # Run appropriate test
     if args.stress:
         tester.run_stress_test(
             recipient=args.recipient,
             total_emails=args.count,
             batch_size=args.batch_size,
-            delay_between_batches=2.0
+            delay_between_batches=2.0,
         )
     else:
         # Regular batch test
         print(f"\n🚀 Generating {args.count} test emails for {args.recipient}...")
         emails = tester.generate_test_emails(args.count, args.recipient)
-        
+
         results = tester.send_batch(emails, delay_between=args.delay)
         tester.print_results(results)
 
 
 if __name__ == "__main__":
     main()
-
