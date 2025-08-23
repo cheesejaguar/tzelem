@@ -1,28 +1,34 @@
-import React from 'react';
-import { useFlow } from '@/contexts/FlowContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React from "react";
+import { useFlow } from "@/contexts/FlowContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 // Badge component will be used for type-specific badges when needed
-import { Switch } from '@/components/ui/switch';
-import { Trash2, Plus, X } from 'lucide-react';
-import { FlowNode, ModelConfig } from '@/lib/types/flow';
+import { Switch } from "@/components/ui/switch";
+import { Trash2, Plus, X } from "lucide-react";
+import { FlowNode, ModelConfig } from "@/lib/types/flow";
 
 export function NodeConfigPanel() {
   const { state, dispatch } = useFlow();
-  
-  const selectedNode = state.nodes.find(n => n.id === state.selectedNode);
-  
+
+  const selectedNode = state.nodes.find((n) => n.id === state.selectedNode);
+
   if (!selectedNode) {
     return null;
   }
 
-  const updateNodeData = (updates: Partial<FlowNode['data']>) => {
+  const updateNodeData = (updates: Partial<FlowNode["data"]>) => {
     dispatch({
-      type: 'UPDATE_NODE',
+      type: "UPDATE_NODE",
       payload: {
         id: selectedNode.id,
         data: updates,
@@ -31,9 +37,9 @@ export function NodeConfigPanel() {
   };
 
   const deleteNode = () => {
-    if (confirm('Are you sure you want to delete this agent?')) {
+    if (confirm("Are you sure you want to delete this agent?")) {
       dispatch({
-        type: 'DELETE_NODE',
+        type: "DELETE_NODE",
         payload: selectedNode.id,
       });
     }
@@ -49,7 +55,7 @@ export function NodeConfigPanel() {
               {selectedNode.data.label}
             </h2>
             <p className="text-xs text-gray-600 mt-1">
-              {selectedNode.type.replace(/([A-Z])/g, ' $1').trim()}
+              {selectedNode.type.replace(/([A-Z])/g, " $1").trim()}
             </p>
           </div>
           <Button
@@ -65,14 +71,21 @@ export function NodeConfigPanel() {
         {/* Basic Settings */}
         <Card className="border-gray-100 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-700">Basic Settings</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700">
+              Basic Settings
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="label" className="text-xs font-medium text-gray-600">Agent Label</Label>
+              <Label
+                htmlFor="label"
+                className="text-xs font-medium text-gray-600"
+              >
+                Agent Label
+              </Label>
               <Input
                 id="label"
-                value={selectedNode.data.label || ''}
+                value={selectedNode.data.label || ""}
                 onChange={(e) => updateNodeData({ label: e.target.value })}
                 placeholder="Enter agent name"
                 className="mt-1.5"
@@ -87,15 +100,21 @@ export function NodeConfigPanel() {
         {/* Position Info */}
         <Card className="border-gray-100 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-700">Position</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700">
+              Position
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs text-gray-600">X: {Math.round(selectedNode.position.x)}</Label>
+                <Label className="text-xs text-gray-600">
+                  X: {Math.round(selectedNode.position.x)}
+                </Label>
               </div>
               <div>
-                <Label className="text-xs text-gray-600">Y: {Math.round(selectedNode.position.y)}</Label>
+                <Label className="text-xs text-gray-600">
+                  Y: {Math.round(selectedNode.position.y)}
+                </Label>
               </div>
             </div>
           </CardContent>
@@ -106,25 +125,27 @@ export function NodeConfigPanel() {
 }
 
 function renderTypeSpecificConfig(
-  node: FlowNode, 
-  updateData: (updates: Partial<FlowNode['data']>) => void
+  node: FlowNode,
+  updateData: (updates: Partial<FlowNode["data"]>) => void
 ) {
   switch (node.type) {
-    case 'MasterAgent':
+    case "MasterAgent":
       return (
         <>
-          <ModelConfigSection 
+          <ModelConfigSection
             model={node.data.model}
             onUpdate={(model) => updateData({ model })}
           />
-          
+
           <Card className="border-gray-100 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-700">System Prompt</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-700">
+                System Prompt
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Textarea
-                value={node.data.systemPrompt || ''}
+                value={node.data.systemPrompt || ""}
                 onChange={(e) => updateData({ systemPrompt: e.target.value })}
                 placeholder="Enter system prompt for the master agent..."
                 className="min-h-[100px]"
@@ -139,14 +160,14 @@ function renderTypeSpecificConfig(
         </>
       );
 
-    case 'ExecutionAgent':
+    case "ExecutionAgent":
       return (
         <>
-          <ModelConfigSection 
+          <ModelConfigSection
             model={node.data.model}
             onUpdate={(model) => updateData({ model })}
           />
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">Capabilities</CardTitle>
@@ -156,27 +177,27 @@ function renderTypeSpecificConfig(
                 <Label>Browser Access</Label>
                 <Switch
                   checked={node.data.capabilities?.browser || false}
-                  onCheckedChange={(browser) => 
-                    updateData({ 
-                      capabilities: { 
-                        ...node.data.capabilities, 
-                        browser 
-                      } 
+                  onCheckedChange={(browser) =>
+                    updateData({
+                      capabilities: {
+                        ...node.data.capabilities,
+                        browser,
+                      },
                     })
                   }
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <Label>Code Execution</Label>
                 <Switch
                   checked={node.data.capabilities?.kernel || false}
-                  onCheckedChange={(kernel) => 
-                    updateData({ 
-                      capabilities: { 
-                        ...node.data.capabilities, 
-                        kernel 
-                      } 
+                  onCheckedChange={(kernel) =>
+                    updateData({
+                      capabilities: {
+                        ...node.data.capabilities,
+                        kernel,
+                      },
                     })
                   }
                 />
@@ -195,24 +216,28 @@ function renderTypeSpecificConfig(
                   id="execution-url"
                   type="url"
                   placeholder="https://example.com"
-                  value={node.data.url || ''}
+                  value={node.data.url || ""}
                   onChange={(e) => updateData({ url: e.target.value })}
                   className="w-full"
                 />
-                <p className="text-xs text-gray-500">URL for the execution agent to access</p>
+                <p className="text-xs text-gray-500">
+                  URL for the execution agent to access
+                </p>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="execution-prompt">Prompt (optional)</Label>
                 <Textarea
                   id="execution-prompt"
                   placeholder="Enter specific instructions for this execution agent..."
-                  value={node.data.prompt || ''}
+                  value={node.data.prompt || ""}
                   onChange={(e) => updateData({ prompt: e.target.value })}
                   className="w-full min-h-[100px]"
                   rows={4}
                 />
-                <p className="text-xs text-gray-500">Specific instructions for this execution agent</p>
+                <p className="text-xs text-gray-500">
+                  Specific instructions for this execution agent
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -226,12 +251,12 @@ function renderTypeSpecificConfig(
                 <Label>Ask User on Ambiguity</Label>
                 <Switch
                   checked={node.data.policies?.askUserOnAmbiguity ?? true}
-                  onCheckedChange={(askUserOnAmbiguity) => 
-                    updateData({ 
-                      policies: { 
-                        ...node.data.policies, 
-                        askUserOnAmbiguity 
-                      } 
+                  onCheckedChange={(askUserOnAmbiguity) =>
+                    updateData({
+                      policies: {
+                        ...node.data.policies,
+                        askUserOnAmbiguity,
+                      },
                     })
                   }
                 />
@@ -241,14 +266,14 @@ function renderTypeSpecificConfig(
         </>
       );
 
-    case 'RoutingAgent':
+    case "RoutingAgent":
       return (
         <>
-          <ModelConfigSection 
+          <ModelConfigSection
             model={node.data.model}
             onUpdate={(model) => updateData({ model })}
           />
-          
+
           <ClassesConfigSection
             classes={node.data.classes || []}
             onUpdate={(classes) => updateData({ classes })}
@@ -256,7 +281,7 @@ function renderTypeSpecificConfig(
         </>
       );
 
-    case 'DataCollectionAgent':
+    case "DataCollectionAgent":
       return (
         <>
           <Card>
@@ -265,7 +290,7 @@ function renderTypeSpecificConfig(
             </CardHeader>
             <CardContent>
               <Textarea
-                value={node.data.loopPrompt || ''}
+                value={node.data.loopPrompt || ""}
                 onChange={(e) => updateData({ loopPrompt: e.target.value })}
                 placeholder="Enter prompt for data collection loop..."
                 className="min-h-[80px]"
@@ -280,7 +305,7 @@ function renderTypeSpecificConfig(
         </>
       );
 
-    case 'MailAgent':
+    case "MailAgent":
       return (
         <Card>
           <CardHeader>
@@ -291,30 +316,30 @@ function renderTypeSpecificConfig(
               <Label htmlFor="fromName">From Name</Label>
               <Input
                 id="fromName"
-                value={node.data.config?.fromName || ''}
-                onChange={(e) => 
-                  updateData({ 
-                    config: { 
-                      ...node.data.config, 
-                      fromName: e.target.value 
-                    } 
+                value={node.data.config?.fromName || ""}
+                onChange={(e) =>
+                  updateData({
+                    config: {
+                      ...node.data.config,
+                      fromName: e.target.value,
+                    },
                   })
                 }
                 placeholder="e.g., Tzelem Assistant"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="subject">Subject</Label>
               <Input
                 id="subject"
-                value={node.data.config?.subject || ''}
-                onChange={(e) => 
-                  updateData({ 
-                    config: { 
-                      ...node.data.config, 
-                      subject: e.target.value 
-                    } 
+                value={node.data.config?.subject || ""}
+                onChange={(e) =>
+                  updateData({
+                    config: {
+                      ...node.data.config,
+                      subject: e.target.value,
+                    },
                   })
                 }
                 placeholder="e.g., Your workflow results"
@@ -329,25 +354,41 @@ function renderTypeSpecificConfig(
   }
 }
 
-function ModelConfigSection({ 
-  model, 
-  onUpdate 
-}: { 
-  model?: ModelConfig; 
+function ModelConfigSection({
+  model,
+  onUpdate,
+}: {
+  model?: ModelConfig;
   onUpdate: (model: ModelConfig) => void;
 }) {
   return (
     <Card className="border-gray-100 shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium text-gray-700">Model Configuration</CardTitle>
+        <CardTitle className="text-sm font-medium text-gray-700">
+          Model Configuration
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label htmlFor="provider" className="text-xs font-medium text-gray-600">Provider</Label>
+          <Label
+            htmlFor="provider"
+            className="text-xs font-medium text-gray-600"
+          >
+            Provider
+          </Label>
           <Select
-            value={model?.provider || 'openai'}
-            onValueChange={(provider) => 
-              onUpdate({ ...model, provider: provider as 'openai' | 'anthropic' | 'google' | 'local' })
+            value={model?.provider || "openai"}
+            onValueChange={(provider) =>
+              onUpdate({
+                model: model?.model || "",
+                provider: provider as
+                  | "openai"
+                  | "anthropic"
+                  | "google"
+                  | "local",
+                temperature: model?.temperature,
+                max_tokens: model?.max_tokens,
+              })
             }
           >
             <SelectTrigger className="mt-1.5">
@@ -361,13 +402,22 @@ function ModelConfigSection({
             </SelectContent>
           </Select>
         </div>
-        
+
         <div>
-          <Label htmlFor="model" className="text-xs font-medium text-gray-600">Model</Label>
+          <Label htmlFor="model" className="text-xs font-medium text-gray-600">
+            Model
+          </Label>
           <Input
             id="model"
-            value={model?.model || ''}
-            onChange={(e) => onUpdate({ ...model, model: e.target.value, provider: model?.provider || 'openai' })}
+            value={model?.model || ""}
+            onChange={(e) =>
+              onUpdate({
+                model: e.target.value,
+                provider: model?.provider || "openai",
+                temperature: model?.temperature,
+                max_tokens: model?.max_tokens,
+              })
+            }
             placeholder="e.g., gpt-4, claude-3-sonnet"
             className="mt-1.5"
           />
@@ -377,15 +427,15 @@ function ModelConfigSection({
   );
 }
 
-function ToolsConfigSection({ 
-  tools, 
-  onUpdate 
-}: { 
-  tools: string[]; 
+function ToolsConfigSection({
+  tools,
+  onUpdate,
+}: {
+  tools: string[];
   onUpdate: (tools: string[]) => void;
 }) {
   const addTool = () => {
-    onUpdate([...tools, '']);
+    onUpdate([...tools, ""]);
   };
 
   const updateTool = (index: number, value: string) => {
@@ -416,11 +466,7 @@ function ToolsConfigSection({
               onChange={(e) => updateTool(index, e.target.value)}
               placeholder="Tool name"
             />
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => removeTool(index)}
-            >
+            <Button size="sm" variant="ghost" onClick={() => removeTool(index)}>
               <X className="w-4 h-4" />
             </Button>
           </div>
@@ -435,15 +481,15 @@ function ToolsConfigSection({
   );
 }
 
-function ClassesConfigSection({ 
-  classes, 
-  onUpdate 
-}: { 
-  classes: string[]; 
+function ClassesConfigSection({
+  classes,
+  onUpdate,
+}: {
+  classes: string[];
   onUpdate: (classes: string[]) => void;
 }) {
   const addClass = () => {
-    onUpdate([...classes, '']);
+    onUpdate([...classes, ""]);
   };
 
   const updateClass = (index: number, value: string) => {
@@ -493,15 +539,15 @@ function ClassesConfigSection({
   );
 }
 
-function SchemaConfigSection({ 
-  schema, 
-  onUpdate 
-}: { 
-  schema: any[]; 
+function SchemaConfigSection({
+  schema,
+  onUpdate,
+}: {
+  schema: any[];
   onUpdate: (schema: any[]) => void;
 }) {
   const addField = () => {
-    onUpdate([...schema, { name: '', type: 'string', required: false }]);
+    onUpdate([...schema, { name: "", type: "string", required: false }]);
   };
 
   const updateField = (index: number, updates: any) => {
@@ -526,7 +572,10 @@ function SchemaConfigSection({
       </CardHeader>
       <CardContent className="space-y-4">
         {schema.map((field, index) => (
-          <div key={index} className="space-y-2 p-3 border border-[var(--border-primary)] rounded-lg">
+          <div
+            key={index}
+            className="space-y-2 p-3 border border-[var(--border-primary)] rounded-lg"
+          >
             <div className="flex items-center justify-between">
               <Input
                 value={field.name}
@@ -542,7 +591,7 @@ function SchemaConfigSection({
                 <X className="w-4 h-4" />
               </Button>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Select
                 value={field.type}
@@ -559,11 +608,13 @@ function SchemaConfigSection({
                   <SelectItem value="object">Object</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <div className="flex items-center gap-2">
                 <Switch
                   checked={field.required}
-                  onCheckedChange={(required) => updateField(index, { required })}
+                  onCheckedChange={(required) =>
+                    updateField(index, { required })
+                  }
                 />
                 <Label>Required</Label>
               </div>
