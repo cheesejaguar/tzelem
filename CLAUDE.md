@@ -4,165 +4,112 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Tzelem is a multi-agent orchestration platform that builds AI teams to deliver work with enterprise-grade control. The project consists of:
-- **Frontend**: React + Vite with visual flow builder using React Flow
-- **Backend**: FastAPI with Daily.co WebRTC integration via Pipecat
+Tzelem is a dynamic multi-agent orchestration platform that builds AI teams to deliver real work with enterprise-grade control. The platform allows users to define objectives with budgets, then assembles specialized agents that coordinate workflows and deliver results with real-time observability, auditability, and spend guardrails.
 
-## Common Development Commands
+## Repository Structure
 
-### Frontend (from `frontend/app/`)
+This is a monorepo with the following main directories:
 
-```bash
-# Development
-npm run dev                 # Start development server on port 5173
+- `frontend/app/` - React frontend application (Vite + TypeScript)
+- `backend/` - Backend services (currently minimal)
+- `infra/` - Infrastructure configuration
+- `scripts/` - Development scripts and documentation
 
-# Testing
-npm run test               # Run tests with Vitest
-npm run test:ui            # Run tests with Vitest UI
-npm run test:coverage      # Run tests with coverage report
+## Frontend Development
 
-# Code Quality
-npm run lint               # Lint TypeScript/TSX files
-npm run lint:fix           # Auto-fix linting issues
-npm run type-check         # Type check without emitting files
-npm run format             # Format code with Prettier
-npm run format:check       # Check formatting without changes
+The main application is located in `frontend/app/` and uses:
 
-# Build
-npm run build              # Build for production
-npm run preview            # Preview production build
-```
+### Tech Stack
+- **Framework**: Vite + React 19 + TypeScript
+- **UI Components**: ShadCN/UI + Radix UI primitives
+- **Styling**: Tailwind CSS
+- **Flow Builder**: React Flow (@xyflow/react)
+- **Voice**: PipeCat Client JS (@pipecat-ai/client-js)
+- **State Management**: Zustand + React Context
+- **HTTP Client**: Axios
+- **Testing**: Vitest + React Testing Library + Playwright
 
-### Backend (from `backend/`)
+### Development Commands
+
+Navigate to `frontend/app/` directory first:
 
 ```bash
-# Development
-uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
-# OR
-uv run python run.py
-
-# Testing
-uv run pytest                      # Run all tests
-uv run pytest --cov               # Run with coverage
-uv run pytest tests/test_voice.py # Run specific test file
-
-# Code Quality
-uv run ruff check .               # Run linter
-uv run ruff check . --fix         # Auto-fix linting issues
-uv run ruff format .              # Format code
-uv run mypy .                     # Type checking
-
-# Dependencies
-uv sync --extra dev               # Install all dependencies including dev tools
+cd frontend/app
 ```
 
-### Environment Setup
+**Essential commands:**
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint issues automatically
+- `npm run type-check` - Run TypeScript type checking
+- `npm run test` - Run unit tests with Vitest
+- `npm run test:ui` - Run tests with UI interface
+- `npm run test:coverage` - Generate test coverage report
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
+- `npm run preview` - Preview production build
 
-Create `.env` file in repository root with:
-```
-DAILY_API_KEY=your_daily_api_key_here
-DEBUG=false  # Set to true for debug mode
-```
+## Core Architecture
 
-## High-Level Architecture
+The frontend follows a feature-based architecture:
 
-### Frontend Architecture
+### Key Features
+1. **Flow Builder** - Visual workflow designer using React Flow
+2. **Run Console** - Real-time execution monitoring with SSE
+3. **Voice Interface** - WebRTC integration with PipeCat
+4. **Secrets Manager** - Secure credential management
 
-The frontend is a React application built with Vite, using:
-- **React Flow** (`@xyflow/react`) for visual workflow building
-- **Radix UI** for accessible UI components  
-- **Tailwind CSS** for styling with custom design system
-- **Zustand** for state management
-- **Tanstack Router** for routing
-- **React Hook Form + Zod** for form handling and validation
-
-Key frontend structure:
+### Project Structure
 ```
 frontend/app/src/
-├── components/      # Reusable UI components
-│   ├── ui/         # Base UI components (button, card, etc.)
-│   └── layout/     # Layout components (Header, etc.)
-├── features/       # Feature-specific modules
-│   └── flow/       # Flow builder feature
-│       ├── components/   # Flow-specific components
-│       │   └── nodes/   # Agent node components
-│       ├── types.ts     # TypeScript definitions
-│       └── utils/       # Validation, export utilities
-└── lib/            # Shared utilities
+├── components/
+│   ├── ui/          # ShadCN base components
+│   ├── layout/      # Header, Navigation, Layout
+│   └── common/      # Shared components
+├── features/
+│   ├── flow/        # Flow Builder components
+│   ├── run/         # Run Console & Execution
+│   ├── voice/       # Voice Interface
+│   └── secrets/     # Secrets Management
+├── lib/
+│   ├── api.ts       # API client & endpoints
+│   ├── utils.ts     # Utility functions
+│   └── types/       # Global type definitions
+├── hooks/           # Global hooks
+└── contexts/        # React contexts
 ```
 
-### Backend Architecture
+### Flow Export Schema
+Flows are exported as JSON with version 0.1.0 schema supporting:
+- Agentic or Sequential paradigms
+- Multiple agent types (MasterAgent, ExecutionAgent, RoutingAgent, etc.)
+- Real-time voice integration
+- Pricing/budget controls
 
-The backend is a FastAPI application with:
-- **Pipecat** for Daily.co WebRTC integration
-- **Pydantic** for data validation and settings
-- **Async/await** throughout for non-blocking operations
+### API Integration
+- Base URL configured via `VITE_API_BASE_URL` environment variable
+- SSE endpoints for real-time updates (`/api/runs/:id/events`)
+- Voice room management for WebRTC connections
+- Secrets are handled server-side (frontend only stores labels)
 
-Key backend structure:
-```
-backend/
-├── api/              # API endpoints
-│   └── voice.py      # Voice/WebRTC endpoints
-├── core/             # Core configuration
-│   └── config.py     # Settings and environment
-├── services/         # Business logic
-│   └── daily_service.py  # Daily.co integration
-├── app/              # Application logic (agents, runners)
-│   ├── runner/       # Flow execution engine
-│   │   └── agents/   # Agent implementations
-│   └── services/     # Additional services
-└── main.py           # FastAPI application entry
-```
+## Design System
 
-### Agent System Design
+The application uses a monochromatic design with:
+- **Colors**: White/gray foundation with blue accent (#0066ff)
+- **Typography**: Inter font family with proper weights
+- **Components**: Built on ShadCN/UI and Radix UI primitives
 
-The platform supports multiple agent types:
-1. **MasterAgent**: Coordinates other agents, manages tools and subagents
-2. **ExecutionAgent**: Executes tasks with browser/kernel capabilities
-3. **RoutingAgent**: Routes requests to appropriate handlers/classes
-4. **DataCollectionAgent**: Collects structured data via schema
-5. **MailAgent**: Handles email communications via AgentMail
+## Git Workflow
 
-Workflows can be:
-- **Agentic**: Agents decide execution flow dynamically
-- **Sequential**: Fixed execution order defined by edges
+- **Main branch**: `main` (use for PRs)
+- **Current branch**: `frontend-dev`
+- The repository is clean and ready for development
 
-### API Endpoints
+## Important Notes
 
-- `GET /` - Health check
-- `GET /health` - Detailed health status  
-- `POST /api/voice/rooms` - Create Daily WebRTC room
-- API docs available at `http://localhost:8000/docs` when running
-
-### Testing Strategy
-
-- Frontend: Vitest for unit tests, Playwright for E2E
-- Backend: Pytest with async support
-- Always run tests before committing:
-  - Frontend: `npm run test` and `npm run type-check`
-  - Backend: `uv run pytest` and `uv run mypy .`
-
-### Key Dependencies
-
-**Frontend:**
-- React 19.1.1 with TypeScript
-- @xyflow/react for flow building
-- @pipecat-ai/client-js for voice integration
-- Radix UI components for accessible UI
-- Tailwind CSS with custom design system
-
-**Backend:**
-- FastAPI 0.115.6
-- Pipecat 0.0.80 for Daily.co integration  
-- Python 3.11+ with uv package manager
-- Pydantic for validation
-
-### Development Notes
-
-- The project uses a monorepo structure with separate frontend and backend
-- Frontend runs on port 5173 (dev), backend on port 8000
-- CORS is configured to allow frontend-backend communication
-- Debug mode provides verbose logging when DEBUG=true in .env
-- Use SSE (Server-Sent Events) for real-time updates by default
-- Voice features require Daily.co API key configuration
-```
+- Always run `npm run type-check` and `npm run lint` before committing
+- The frontend app contains extensive specifications in `scripts/mega_frontend_prompt.md`
+- Backend is currently minimal - focus development on frontend
+- Voice features require PipeCat integration and WebRTC
+- All secrets must be handled server-side for security

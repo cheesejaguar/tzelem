@@ -1,36 +1,36 @@
-import { useState } from 'react';
-import { FlowBuilder } from './features/flow/components/FlowBuilder';
-import { Header } from './components/layout/Header';
+import React, { Suspense } from 'react';
+import { FlowProvider } from './contexts/FlowContext';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { LoadingSpinner } from './components/common/LoadingSpinner';
+import './App.css';
+
+// Lazy load the FlowBuilder for better initial load performance
+const FlowBuilder = React.lazy(() => 
+  import('./features/flow/components/FlowBuilder').then(module => ({ 
+    default: module.FlowBuilder 
+  }))
+);
 
 function App() {
-  const [activeView, setActiveView] = useState<'flow' | 'run' | 'secrets'>('flow');
-
   return (
-    <div className="min-h-screen bg-background">
-      <Header activeView={activeView} onViewChange={setActiveView} />
-      
-      <main className="flex-1">
-        {activeView === 'flow' && <FlowBuilder />}
-        {activeView === 'run' && (
-          <div className="container py-8">
-            <div className="text-center py-16">
-              <h2 className="display-medium mb-4">Run Console</h2>
-              <p className="body-large text-muted-foreground">Coming soon...</p>
-            </div>
-          </div>
-        )}
-        {activeView === 'secrets' && (
-          <div className="container py-8">
-            <div className="text-center py-16">
-              <h2 className="display-medium mb-4">Secrets Manager</h2>
-              <p className="body-large text-muted-foreground">Coming soon...</p>
-            </div>
-          </div>
-        )}
-      </main>
-
-
-    </div>
+    <ErrorBoundary>
+      <FlowProvider>
+        <div className="fixed inset-0 w-screen h-screen overflow-hidden">
+          <Suspense 
+            fallback={
+              <div className="fixed inset-0 flex items-center justify-center bg-white">
+                <LoadingSpinner 
+                  size="lg" 
+                  message="Loading Flow Builder..."
+                />
+              </div>
+            }
+          >
+            <FlowBuilder />
+          </Suspense>
+        </div>
+      </FlowProvider>
+    </ErrorBoundary>
   );
 }
 

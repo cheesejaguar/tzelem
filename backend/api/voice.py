@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from core.config import settings
 from core.JSON_flow_agent import JSONFlowAgent
 from core.productivity_flow_agent import productivity_flow_agent
+
 from services.daily_service import create_room
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
@@ -20,7 +21,7 @@ active_json_agents = {}
 
 class RoomResponse(BaseModel):
     room: str
-    joinToken: str
+    join_token: str
 
 
 class ProductivityRoomResponse(BaseModel):
@@ -46,7 +47,7 @@ class JSONFlowRoomResponse(BaseModel):
 async def create_voice_room():
     """
     Create a new Daily WebRTC room.
-    
+
     Returns:
         RoomResponse: Object containing room URL and join token
     """

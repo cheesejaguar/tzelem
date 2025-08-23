@@ -2,6 +2,7 @@
 """
 Startup script for the Tzelem Backend FastAPI server
 """
+
 import uvicorn
 
 from core.config import settings

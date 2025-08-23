@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 async def create_room() -> tuple[str, str]:
     """
     Create a Daily WebRTC room using Pipecat.
-    
+
     Returns:
         Tuple[str, str]: A tuple containing (room_url, join_token)
     """

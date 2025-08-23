@@ -29,6 +29,8 @@ app.add_middleware(
 )
 
 app.include_router(voice_router)
+app.include_router(flows_router)
+app.include_router(runs_router)
 
 
 @app.get("/")
@@ -49,6 +51,7 @@ async def startup_event():
     if settings.debug:
         logger.debug("Debug mode is enabled")
     logger.info("Server ready to accept connections")
+
 
 @app.on_event("shutdown")
 async def shutdown_event():

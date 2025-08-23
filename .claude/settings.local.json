@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)",
+      "Read(//var/folders/d1/15w4sdvs6klg494qt4_l53_h0000gn/T/TemporaryItems/NSIRD_screencaptureui_8bvWsR/**)",
+      "Bash(npm run type-check:*)",
+      "Read(//var/folders/d1/15w4sdvs6klg494qt4_l53_h0000gn/T/TemporaryItems/NSIRD_screencaptureui_hdbrm4/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
