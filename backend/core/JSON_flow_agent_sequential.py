@@ -67,7 +67,13 @@ except ImportError as e:
     VAD_AVAILABLE = False
 
 # Global TTS service
-tts = OpenAITTSService(voice="nova")
+tts = None
+if os.getenv("OPENAI_API_KEY"):
+    try:
+        tts = OpenAITTSService(voice="nova")
+    except Exception as e:
+        logger.warning(f"Could not initialize TTS service: {e}")
+        tts = None
 
 # Default test JSON configuration
 DEFAULT_JSON_CONFIG = {

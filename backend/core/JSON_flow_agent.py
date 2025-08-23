@@ -82,7 +82,14 @@ except ImportError as e:
 
 # Default test JSON configuration
 
-tts = OpenAITTSService(voice="nova")
+# Initialize TTS service only if API key is available
+tts = None
+if os.getenv("OPENAI_API_KEY"):
+    try:
+        tts = OpenAITTSService(voice="nova")
+    except Exception as e:
+        logger.warning(f"Could not initialize TTS service: {e}")
+        tts = None
 
 DEFAULT_JSON_CONFIG = {
     "paradigm": "Agentic",
