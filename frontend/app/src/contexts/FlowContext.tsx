@@ -33,6 +33,17 @@ function flowReducer(state: FlowState, action: FlowAction): FlowState {
         isDirty: true,
       };
 
+    case 'UPDATE_NODE_POSITION':
+      return {
+        ...state,
+        nodes: state.nodes.map(node =>
+          node.id === action.payload.id
+            ? { ...node, position: action.payload.position }
+            : node
+        ),
+        isDirty: true,
+      };
+
     case 'DELETE_NODE':
       return saveSnapshot({
         ...state,

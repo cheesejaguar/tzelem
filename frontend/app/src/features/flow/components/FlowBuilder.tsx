@@ -10,6 +10,7 @@ import {
   Background,
   Controls,
   MiniMap,
+  applyNodeChanges,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -46,35 +47,55 @@ function FlowBuilderInner() {
   // Enable keyboard shortcuts
   useKeyboardShortcuts();
 
-  // Convert our types to ReactFlow types
-  const nodes: Node[] = state.nodes.map(node => ({
-    ...node,
-    selected: state.selectedNode === node.id,
-  }));
+  // Local nodes state for smooth dragging
+  const [localNodes, setLocalNodes] = React.useState<Node[]>([]);
+
+  // Sync local nodes with global state
+  React.useEffect(() => {
+    const nodes: Node[] = state.nodes.map(node => ({
+      ...node,
+      selected: state.selectedNode === node.id,
+    }));
+    setLocalNodes(nodes);
+  }, [state.nodes, state.selectedNode]);
+
+  const nodes = localNodes;
 
   const edges: Edge[] = state.edges.map(edge => ({
     ...edge,
     selected: state.selectedEdge === edge.id,
-    animated: edge.type === 'sequential',
+    animated: edge.type === 'agentic',
     style: {
-      strokeWidth: 2,
-      stroke: edge.type === 'agentic' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+      strokeWidth: edge.selected ? 3 : 2,
+      stroke: edge.selected 
+        ? '#0066ff' 
+        : edge.type === 'agentic' 
+          ? '#0066ff' 
+          : '#6b7280',
+      strokeDasharray: edge.type === 'sequential' ? '5,5' : undefined,
+    },
+    markerEnd: {
+      type: 'arrowclosed',
+      width: 20,
+      height: 20,
+      color: edge.selected ? '#0066ff' : edge.type === 'agentic' ? '#0066ff' : '#6b7280',
     },
   }));
 
   const onNodesChange = useCallback((changes: any[]) => {
-    // Handle node position changes
+    // Apply changes to local nodes immediately for smooth dragging
+    setLocalNodes(nds => applyNodeChanges(changes, nds));
+    
+    // Handle other change types and update global state
     changes.forEach((change: any) => {
       if (change.type === 'position' && change.dragging === false) {
-        const node = state.nodes.find(n => n.id === change.id);
-        if (node) {
+        // Update global state when dragging is complete
+        if (change.position) {
           dispatch({
-            type: 'UPDATE_NODE',
+            type: 'UPDATE_NODE_POSITION',
             payload: {
               id: change.id,
-              data: {
-                ...node.data,
-              },
+              position: change.position,
             },
           });
         }
@@ -90,7 +111,7 @@ function FlowBuilderInner() {
         });
       }
     });
-  }, [state.nodes, dispatch]);
+  }, [dispatch]);
 
   const onEdgesChange = useCallback((changes: any[]) => {
     changes.forEach((change: any) => {
@@ -156,7 +177,7 @@ function FlowBuilderInner() {
       // Smart positioning to prevent overlapping
       let finalPosition = { ...position };
       
-      // Check for overlaps and adjust position
+      // Check for overlaps and adjust position (use local nodes for accuracy)
       const nodeWidth = 280; // Approximate node width
       const nodeHeight = 200; // Approximate node height
       const padding = 40; // Padding between nodes
@@ -165,7 +186,7 @@ function FlowBuilderInner() {
       const maxAttempts = 20;
       
       while (attempts < maxAttempts) {
-        const hasOverlap = state.nodes.some(existingNode => 
+        const hasOverlap = localNodes.some(existingNode => 
           Math.abs(existingNode.position.x - finalPosition.x) < nodeWidth + padding &&
           Math.abs(existingNode.position.y - finalPosition.y) < nodeHeight + padding
         );
@@ -197,7 +218,7 @@ function FlowBuilderInner() {
         payload: newNode,
       });
     },
-    [screenToFlowPosition, dispatch, state.nodes]
+    [screenToFlowPosition, dispatch, localNodes]
   );
 
   // Validate flow whenever nodes or edges change
@@ -237,7 +258,19 @@ function FlowBuilderInner() {
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             connectionMode={ConnectionMode.Loose}
+            nodesDraggable={true}
+            nodesConnectable={true}
+            elementsSelectable={true}
+            panOnDrag={[1, 2]}
+            selectionOnDrag={false}
+            selectNodesOnDrag={false}
+            zoomOnScroll={true}
+            zoomOnPinch={true}
+            zoomOnDoubleClick={false}
+            panOnScroll={false}
+            preventScrolling={true}
             fitView
+            fitViewOptions={{ padding: 0.2 }}
             attributionPosition="bottom-left"
             className={`w-full h-full transition-all duration-300 ${
               isDragOver 
@@ -245,8 +278,14 @@ function FlowBuilderInner() {
                 : 'bg-gradient-to-br from-gray-50 via-white to-gray-100'
             }`}
             defaultEdgeOptions={{
-              style: { strokeWidth: 2, stroke: '#6b7280' },
+              style: { strokeWidth: 2, stroke: '#0066ff' },
               type: 'smoothstep',
+              markerEnd: {
+                type: 'arrowclosed',
+                width: 20,
+                height: 20,
+                color: '#0066ff',
+              },
             }}
           >
             <Background 
@@ -263,17 +302,19 @@ function FlowBuilderInner() {
               showInteractive={false}
             />
             <MiniMap 
-              className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg overflow-hidden"
+              className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-sm overflow-hidden"
               nodeColor={(node) => {
                 const nodeData = state.nodes.find(n => n.id === node.id);
                 const hasErrors = nodeData && state.errors.some(e => e.nodeId === node.id);
-                return hasErrors ? '#ef4444' : '#3b82f6';
+                const isSelected = nodeData && state.selectedNode === node.id;
+                return hasErrors ? '#ef4444' : isSelected ? '#0066ff' : '#6b7280';
               }}
               nodeStrokeColor="#ffffff"
-              nodeStrokeWidth={2}
-              maskColor="rgba(255, 255, 255, 0.9)"
+              nodeStrokeWidth={1}
+              maskColor="rgba(255, 255, 255, 0.8)"
               zoomable
               pannable
+              position="bottom-right"
             />
           </ReactFlow>
 
@@ -292,11 +333,72 @@ function FlowBuilderInner() {
             </div>
           )}
 
+          {/* Selection Toolbar */}
+          {(state.selectedNode || state.selectedEdge) && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg border border-gray-200 shadow-lg p-2 flex items-center gap-1 z-20">
+              {state.selectedNode && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      const node = state.nodes.find(n => n.id === state.selectedNode);
+                      if (node) {
+                        dispatch({
+                          type: 'ADD_NODE',
+                          payload: {
+                            ...node,
+                            id: `${node.type.toLowerCase()}-${Date.now()}`,
+                            position: {
+                              x: node.position.x + 50,
+                              y: node.position.y + 50,
+                            },
+                            data: { ...node.data, label: node.data.label + ' Copy' }
+                          }
+                        });
+                      }
+                    }}
+                    className="h-8 px-3 text-xs text-gray-600 hover:text-gray-900"
+                  >
+                    Duplicate
+                  </Button>
+                  <div className="w-px h-4 bg-gray-200" />
+                </>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  if (state.selectedNode) {
+                    dispatch({ type: 'DELETE_NODE', payload: state.selectedNode });
+                  } else if (state.selectedEdge) {
+                    dispatch({ type: 'DELETE_EDGE', payload: state.selectedEdge });
+                  }
+                }}
+                className="h-8 px-3 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                Delete
+              </Button>
+              <div className="w-px h-4 bg-gray-200" />
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  dispatch({ type: 'SELECT_NODE', payload: null });
+                  dispatch({ type: 'SELECT_EDGE', payload: null });
+                }}
+                className="h-8 px-3 text-xs text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </Button>
+            </div>
+          )}
+
           {/* Empty State */}
           {state.nodes.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="text-center max-w-md">
-                <div className="w-20 h-20 mx-auto mb-6 bg-black rounded-2xl flex items-center justify-center">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
                   <Brain className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">

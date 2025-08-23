@@ -43,7 +43,7 @@ export function BaseNode({
         type="target"
         position={Position.Left}
         isConnectable={isConnectable}
-        className="w-3 h-3 !bg-white border-2 border-gray-300 hover:border-black transition-colors duration-200"
+        className="w-4 h-4 !bg-white border-2 border-blue-600 hover:border-blue-700 hover:!bg-blue-50 transition-all duration-200 shadow-sm"
         aria-label="Input connection point"
       />
 
@@ -110,7 +110,7 @@ export function BaseNode({
         type="source"
         position={Position.Right}
         isConnectable={isConnectable}
-        className="w-3 h-3 !bg-white border-2 border-gray-300 hover:border-black transition-colors duration-200"
+        className="w-4 h-4 !bg-white border-2 border-blue-600 hover:border-blue-700 hover:!bg-blue-50 transition-all duration-200 shadow-sm"
         aria-label="Output connection point"
       />
     </div>
