@@ -323,11 +323,7 @@ async def record_data(
     
     collected_data = flow_data.collected_data[current_agent_id]
     all_collected = all(
-<<<<<<< HEAD
         point["name"] in collected_data and collected_data[point["name"]]
-=======
-        point["name"] in collected_data and collected_data[point["name"]] 
->>>>>>> 4dd1e2f (first commit)
         for point in data_points
     )
     
@@ -430,8 +426,6 @@ def create_starting_node() -> NodeConfig:
 
 
 def create_router_node(agent: dict[str, Any]) -> NodeConfig:
-def create_router_node(agent: Dict[str, Any]) -> NodeConfig:
->>>>>>> 4dd1e2f (first commit)
     """Create a router node."""
     agent_id = agent["identifier"]
     prompt = agent.get("prompt", "I will route your request to the appropriate agent.")
@@ -457,11 +451,7 @@ def create_router_node(agent: Dict[str, Any]) -> NodeConfig:
         ],
         "task_messages": [
             {
-<<<<<<< HEAD
                 "role": "system",
-=======
-                "role": "system", 
->>>>>>> 4dd1e2f (first commit)
                 "content": (
                     f"{prompt}\n\n"
                     f"Available routing options:\n{children_desc}\n\n"
@@ -473,15 +463,9 @@ def create_router_node(agent: Dict[str, Any]) -> NodeConfig:
     }
 
 
-<<<<<<< HEAD
 def create_data_collector_node(agent: dict[str, Any]) -> NodeConfig:
     """Create a data collector node."""
     agent_id = agent["identifier"]
-=======
-def create_data_collector_node(agent: Dict[str, Any]) -> NodeConfig:
-    """Create a data collector node."""
-    agent_id = agent["identifier"] 
->>>>>>> 4dd1e2f (first commit)
     prompt = agent.get("prompt", "I need to collect some information from you.")
     data_points = agent.get("dataPoints", [])
     children = agent.get("children", [])
@@ -532,16 +516,10 @@ def create_data_collector_node(agent: Dict[str, Any]) -> NodeConfig:
             },
         ],
         "functions": functions,
-
-
     }
 
 
-<<<<<<< HEAD
 def create_email_agent_node(agent: dict[str, Any]) -> NodeConfig:
-=======
-def create_email_agent_node(agent: Dict[str, Any]) -> NodeConfig:
->>>>>>> 4dd1e2f (first commit)
     """Create an email agent node."""
     agent_id = agent["identifier"]
     prompt = agent.get("prompt", "I will compose and send an email for you.")
@@ -553,11 +531,7 @@ def create_email_agent_node(agent: Dict[str, Any]) -> NodeConfig:
     
     data_context = ""
     if all_collected_data:
-<<<<<<< HEAD
         data_context = "\n\nCollected data to reference:\n"
-=======
-        data_context = f"\n\nCollected data to reference:\n"
->>>>>>> 4dd1e2f (first commit)
         for key, value in all_collected_data.items():
             data_context += f"- {key}: {value}\n"
     
@@ -565,11 +539,7 @@ def create_email_agent_node(agent: Dict[str, Any]) -> NodeConfig:
         "name": f"email_agent_{agent_id}",
         "role_messages": [
             {
-<<<<<<< HEAD
                 "role": "system",
-=======
-                "role": "system", 
->>>>>>> 4dd1e2f (first commit)
                 "content": (
                     f"You are an Email Agent (ID: {agent_id}) in a sequential flow. "
                     "Your job is to compose and send an email. Use the sendEmail function "
