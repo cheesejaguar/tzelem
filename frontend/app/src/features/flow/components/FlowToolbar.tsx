@@ -13,7 +13,7 @@ import { useFlow } from "@/contexts/FlowContext";
 import { exportFlow, importFlow } from "../utils/flowExport";
 import { DailyCallFrame } from "@/components/DailyCallFrame";
 import { apiClient } from "@/lib/api";
-import { AuthButton } from "../../../../auth/AuthButton";
+import { AuthButton } from "../../../auth/AuthButton";
 
 interface VoiceInfo {
   room: string;
