@@ -131,15 +131,11 @@ async def run_productivity_agent(room_url: str, token: str):
             active_agents[room_url]["status"] = "error"
 
 
-
-
-
-
 @router.post("/productivity-rooms", response_model=ProductivityRoomResponse)
 async def create_productivity_room(background_tasks: BackgroundTasks):
     """
     Create a new Daily WebRTC room with productivity assistant agent.
-    
+
     Returns:
         ProductivityRoomResponse: Object containing room details and agent info
     """
@@ -176,10 +172,10 @@ async def create_json_flow_room(
 ):
     """
     Create a new Daily WebRTC room with JSON flow agent.
-    
+
     Args:
         request: Optional JSON configuration for the agent
-        
+
     Returns:
         JSONFlowRoomResponse: Object containing room details and agent info
     """
@@ -226,6 +222,7 @@ async def get_room_status(room_url: str):
     try:
         # Decode the room URL (it might be URL encoded)
         import urllib.parse
+
         decoded_room_url = urllib.parse.unquote(room_url)
 
         # Check for productivity agent first
@@ -280,6 +277,7 @@ async def cleanup_room(room_url: str):
     """Clean up a room and stop its agent (productivity or JSON flow)."""
     try:
         import urllib.parse
+
         decoded_room_url = urllib.parse.unquote(room_url)
 
         # Check for productivity agent

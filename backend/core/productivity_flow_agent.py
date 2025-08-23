@@ -32,7 +32,10 @@ print(f"[DEBUG] OPENAI_API_KEY loaded: {'Yes' if openai_key else 'No'}")
 if openai_key:
     print(f"[DEBUG] OPENAI_API_KEY preview: {openai_key[:10]}...")
 else:
-    print("[DEBUG] Available env vars starting with OPENAI:", [k for k in os.environ if k.startswith("OPENAI")])
+    print(
+        "[DEBUG] Available env vars starting with OPENAI:",
+        [k for k in os.environ if k.startswith("OPENAI")],
+    )
 
 import contextlib
 
@@ -56,6 +59,7 @@ logger = logging.getLogger(__name__)
 # Optional VAD analyzer - fallback to None if not available
 try:
     from pipecat.audio.vad.silero import SileroVADAnalyzer
+
     VAD_AVAILABLE = True
 except ImportError as e:
     logger.warning(f"VAD analyzer not available: {e}. Continuing without VAD.")
@@ -110,7 +114,8 @@ productivity_data = ProductivityData()
 
 # Function handlers
 async def collect_task_info(
-    args: FlowArgs, flow_manager: FlowManager,
+    args: FlowArgs,
+    flow_manager: FlowManager,
 ) -> tuple[TaskCreationResult, NodeConfig]:
     """Process task creation."""
     title = args["title"]
@@ -147,7 +152,8 @@ async def collect_task_info(
 
 
 async def schedule_time_block(
-    args: FlowArgs, flow_manager: FlowManager,
+    args: FlowArgs,
+    flow_manager: FlowManager,
 ) -> tuple[ScheduleResult, NodeConfig]:
     """Process schedule time blocking."""
     title = args["title"]
@@ -183,7 +189,8 @@ async def schedule_time_block(
 
 
 async def create_goal(
-    args: FlowArgs, flow_manager: FlowManager,
+    args: FlowArgs,
+    flow_manager: FlowManager,
 ) -> tuple[GoalResult, NodeConfig]:
     """Process goal creation."""
     name = args["name"]
@@ -223,7 +230,8 @@ async def create_goal(
 
 
 async def provide_coaching(
-    args: FlowArgs, flow_manager: FlowManager,
+    args: FlowArgs,
+    flow_manager: FlowManager,
 ) -> tuple[CoachingResult, NodeConfig]:
     """Provide productivity coaching advice."""
     coaching_type = args.get("type", "general")
@@ -488,7 +496,10 @@ def create_schedule_node() -> NodeConfig:
                             "title": {"type": "string"},
                             "start_time": {"type": "string"},
                             "duration": {"type": "integer"},
-                            "type": {"type": "string", "enum": ["work", "meeting", "break", "personal"]},
+                            "type": {
+                                "type": "string",
+                                "enum": ["work", "meeting", "break", "personal"],
+                            },
                         },
                         "required": ["title", "start_time"],
                     },
@@ -602,7 +613,10 @@ def create_coaching_node() -> NodeConfig:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "type": {"type": "string", "enum": ["time_management", "focus", "motivation"]},
+                            "type": {
+                                "type": "string",
+                                "enum": ["time_management", "focus", "motivation"],
+                            },
                             "context": {"type": "string"},
                         },
                         "required": ["type"],
@@ -769,7 +783,9 @@ def create_goal_success_node(goal_result: GoalResult) -> NodeConfig:
 
 def create_coaching_response_node(coaching_result: CoachingResult) -> NodeConfig:
     """Create response node for coaching advice."""
-    tips_text = " ".join([f"Tip {i+1}: {tip}" for i, tip in enumerate(coaching_result["actionable_tips"])])
+    tips_text = " ".join(
+        [f"Tip {i + 1}: {tip}" for i, tip in enumerate(coaching_result["actionable_tips"])]
+    )
 
     return {
         "name": "coaching_response",
@@ -793,7 +809,10 @@ def create_coaching_response_node(coaching_result: CoachingResult) -> NodeConfig
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "type": {"type": "string", "enum": ["time_management", "focus", "motivation"]},
+                            "type": {
+                                "type": "string",
+                                "enum": ["time_management", "focus", "motivation"],
+                            },
                             "context": {"type": "string"},
                         },
                         "required": ["type"],
@@ -888,8 +907,7 @@ class ProductivityFlowAgent:
                 model="gpt-4o",
             )
 
-            stt = OpenAISTTService(
-            )
+            stt = OpenAISTTService()
 
             tts = OpenAITTSService(
                 voice="nova",

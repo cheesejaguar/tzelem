@@ -30,7 +30,10 @@ print(f"[DEBUG] OPENAI_API_KEY loaded: {'Yes' if openai_key else 'No'}")
 if openai_key:
     print(f"[DEBUG] OPENAI_API_KEY preview: {openai_key[:10]}...")
 else:
-    print("[DEBUG] Available env vars starting with OPENAI:", [k for k in os.environ if k.startswith("OPENAI")])
+    print(
+        "[DEBUG] Available env vars starting with OPENAI:",
+        [k for k in os.environ if k.startswith("OPENAI")],
+    )
 
 import contextlib
 
@@ -55,6 +58,7 @@ logger = logging.getLogger(__name__)
 # Optional VAD analyzer - fallback to None if not available
 try:
     from pipecat.audio.vad.silero import SileroVADAnalyzer
+
     VAD_AVAILABLE = True
 except ImportError as e:
     logger.warning(f"VAD analyzer not available: {e}. Continuing without VAD.")
@@ -82,6 +86,7 @@ DEFAULT_JSON_CONFIG = {
     ],
 }
 
+
 # Type definitions for function results
 class BrowserResult(FlowResult):
     agent_id: int
@@ -90,18 +95,22 @@ class BrowserResult(FlowResult):
     url: str
     status: str
 
+
 class MailResult(FlowResult):
     agent_id: int
     agent_type: str
     prompt: str
     status: str
 
+
 class JSONFlowData:
     """Data storage for JSON flow configurations and agent information."""
+
     def __init__(self):
         self.current_config: dict[str, Any] = DEFAULT_JSON_CONFIG
         self.sub_agents: list[dict[str, Any]] = []
         self.paradigm: str = "Agentic"
+
 
 # Global data store
 json_flow_data = JSONFlowData()
@@ -149,6 +158,7 @@ end_conversation_schema = FlowsFunctionSchema(
     handler=None,  # Will be set after function definition
 )
 
+
 def convert_json_to_markdown(config: dict[str, Any]) -> str:
     """Convert JSON configuration to markdown format for the master node."""
     markdown = "# Flow Configuration\n\n"
@@ -167,9 +177,11 @@ def convert_json_to_markdown(config: dict[str, Any]) -> str:
 
     return markdown
 
+
 # Function handlers for Agentic paradigm
 async def browser_function(
-    args: FlowArgs, flow_manager: FlowManager,
+    args: FlowArgs,
+    flow_manager: FlowManager,
 ) -> tuple[BrowserResult, NodeConfig]:
     """Execute browser agent task by identifier."""
     agent_id = args["agent_id"]
@@ -222,13 +234,17 @@ async def browser_function(
 
     return result, None
 
+
 async def continue_function(
-    args: FlowArgs, flow_manager: FlowManager,
+    args: FlowArgs,
+    flow_manager: FlowManager,
 ) -> tuple[MailResult, NodeConfig]:
     return None, create_master_node()
 
+
 async def mail_function(
-    args: FlowArgs, flow_manager: FlowManager,
+    args: FlowArgs,
+    flow_manager: FlowManager,
 ) -> tuple[MailResult, NodeConfig]:
     """Execute mail agent task by identifier."""
     agent_id = args["agent_id"]
@@ -278,6 +294,7 @@ async def mail_function(
     next_node = create_master_node()
     return result, next_node
 
+
 async def end_conversation(args: FlowArgs) -> tuple[FlowResult, NodeConfig]:
     """Handle conversation end."""
     logger.debug("Ending JSON flow session")
@@ -285,11 +302,13 @@ async def end_conversation(args: FlowArgs) -> tuple[FlowResult, NodeConfig]:
     next_node = create_end_node()
     return result, next_node
 
+
 # Set handlers for function schemas after function definitions
 browser_function_schema.handler = browser_function
 mail_function_schema.handler = mail_function
 continue_conversation_schema.handler = continue_function
 end_conversation_schema.handler = end_conversation
+
 
 # Node configurations
 def create_initial_node() -> NodeConfig:
@@ -327,12 +346,14 @@ def create_initial_node() -> NodeConfig:
         ],
     }
 
+
 def create_paradigm_router_node() -> NodeConfig:
     """Route to appropriate paradigm handler."""
     if json_flow_data.paradigm.lower() == "agentic":
         return create_master_node()
     # For Sequential or other paradigms, create a basic end node for now
     return create_end_node()
+
 
 def create_master_node() -> NodeConfig:
     """Create the master node for Agentic paradigm."""
@@ -370,6 +391,7 @@ def create_master_node() -> NodeConfig:
         ],
     }
 
+
 def create_end_node() -> NodeConfig:
     """Create the final end node."""
     return {
@@ -386,6 +408,7 @@ def create_end_node() -> NodeConfig:
         ],
         "post_actions": [{"type": "end_conversation"}],
     }
+
 
 class JSONFlowAgent:
     """Main JSON flow agent class that processes dynamic JSON configurations."""
@@ -500,7 +523,7 @@ class JSONFlowAgent:
             async def on_first_participant_joined(transport, participant):
                 await transport.capture_participant_transcription(participant["id"])
                 logger.debug("Initializing JSON flow")
-                if(json_flow_data.paradigm=="Agentic"):
+                if json_flow_data.paradigm == "Agentic":
                     await self.flow_manager.initialize(create_master_node())
                 else:
                     print("Wrong")
@@ -549,6 +572,7 @@ class JSONFlowAgent:
         json_flow_data.current_config = DEFAULT_JSON_CONFIG
         json_flow_data.sub_agents.clear()
         json_flow_data.paradigm = "Agentic"
+
 
 # Global instance
 json_flow_agent = JSONFlowAgent()
