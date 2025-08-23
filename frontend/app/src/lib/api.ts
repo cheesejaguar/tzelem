@@ -166,6 +166,14 @@ export interface VoiceRoomResponse {
   join_token: string;
 }
 
+export interface JSONFlowRoomResponse {
+  room: string;
+  joinToken: string;
+  agentStatus: string;
+  paradigm: string;
+  subAgentsCount: number;
+}
+
 export interface FlowRunRequest {
   flowId?: string;
   flow?: any;
@@ -183,6 +191,11 @@ export interface FlowRunResponse {
 export const apiClient = {
   async createVoiceRoom(): Promise<VoiceRoomResponse> {
     return handleApiResponse<VoiceRoomResponse>(api.post("/api/voice/rooms"));
+  },
+
+  async createJSONFlowRoom(flowConfig?: Record<string, unknown>): Promise<JSONFlowRoomResponse> {
+    const requestData = flowConfig ? { json_config: flowConfig } : {};
+    return handleApiResponse<JSONFlowRoomResponse>(api.post("/api/voice/json-flow-rooms", requestData));
   },
 
   async startFlowRun(data: FlowRunRequest): Promise<FlowRunResponse> {

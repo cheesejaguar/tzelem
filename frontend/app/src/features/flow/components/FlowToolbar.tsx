@@ -90,17 +90,19 @@ export function FlowToolbar() {
     try {
       setIsStartingRun(true);
 
-      // First, create a Daily voice room
-      const voiceData = await apiClient.createVoiceRoom();
-
-      // Start the workflow run with the current flow
+      // Export the flow data to pass to the voice agent
       const flowData = exportFlow(state.nodes, state.edges);
+
+      // Create a JSON flow room with voice agent (includes the flow configuration)
+      const voiceData = await apiClient.createJSONFlowRoom(flowData as unknown as Record<string, unknown>);
+
+      // Also start the workflow run (for tracking/logging)
       await apiClient.startFlowRun({ flow: flowData });
 
       // Set up the voice call with the created room
       setVoiceInfo({
         room: voiceData.room,
-        token: voiceData.join_token,
+        token: voiceData.joinToken, // Note: JSONFlowRoomResponse uses joinToken (camelCase)
       });
       setIsCallActive(true);
     } catch (error) {
