@@ -15,7 +15,8 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -66,7 +67,7 @@ except ImportError as e:
     VAD_AVAILABLE = False
 
 # Global TTS service
-global tts 
+global tts
 tts = OpenAITTSService(voice="nova")
 
 # Default test JSON configuration
@@ -136,7 +137,7 @@ class RouteResult(FlowResult):
 
 class DataCollectionResult(FlowResult):
     agent_id: str | None = None
-    data_collected: Dict[str, str] | None = None
+    data_collected: dict[str, str] | None = None
     all_data_collected: bool | None = None
     status: str | None = None
 
@@ -151,11 +152,11 @@ class SequentialFlowData:
     """Data storage for sequential flow configurations and state."""
 
     def __init__(self):
-        self.current_config: Dict[str, Any] = DEFAULT_JSON_CONFIG
-        self.flow_tree: Dict[str, Any] = {}
+        self.current_config: dict[str, Any] = DEFAULT_JSON_CONFIG
+        self.flow_tree: dict[str, Any] = {}
         self.paradigm: str = "sequential"
         self.current_agent_id: str = "1"
-        self.collected_data: Dict[str, Dict[str, str]] = {}  # agent_id -> data points
+        self.collected_data: dict[str, dict[str, str]] = {}  # agent_id -> data points
         self.conversation_state = {
             "current_agent_id": "1",
             "flow_active": True
@@ -166,10 +167,10 @@ class SequentialFlowData:
 flow_data = SequentialFlowData()
 
 
-def add_identifiers_to_json(config: Dict[str, Any]) -> Dict[str, Any]:
+def add_identifiers_to_json(config: dict[str, Any]) -> dict[str, Any]:
     """Add IDENTIFIER properties to all agents in the JSON structure."""
     
-    def process_agent(agent: Dict[str, Any], identifier: str) -> Dict[str, Any]:
+    def process_agent(agent: dict[str, Any], identifier: str) -> dict[str, Any]:
         """Recursively process agents and add identifiers."""
         agent_copy = agent.copy()
         agent_copy["identifier"] = identifier
@@ -190,7 +191,7 @@ def add_identifiers_to_json(config: Dict[str, Any]) -> Dict[str, Any]:
     return config_copy
 
 
-def build_agent_lookup(agent: Dict[str, Any], lookup: Dict[str, Dict[str, Any]]) -> None:
+def build_agent_lookup(agent: dict[str, Any], lookup: dict[str, dict[str, Any]]) -> None:
     """Build a lookup table for quick agent access by identifier."""
     lookup[agent["identifier"]] = agent
     
@@ -218,7 +219,7 @@ record_data_schema = FlowsFunctionSchema(
     description="Record a piece of data for the current data collection agent",
     properties={
         "data_name": {
-            "type": "string", 
+            "type": "string",
             "description": "The name of the data point being recorded",
         },
         "data_value": {
@@ -239,7 +240,7 @@ send_email_schema = FlowsFunctionSchema(
             "description": "Subject line of the email",
         },
         "email_body": {
-            "type": "string", 
+            "type": "string",
             "description": "Body content of the email",
         },
         "recipient": {
@@ -323,7 +324,7 @@ async def record_data(
     
     collected_data = flow_data.collected_data[current_agent_id]
     all_collected = all(
-        point["name"] in collected_data and collected_data[point["name"]] 
+        point["name"] in collected_data and collected_data[point["name"]]
         for point in data_points
     )
     
@@ -418,15 +419,14 @@ def create_starting_node() -> NodeConfig:
     
     if starting_agent["type"] == "router":
         return create_router_node(starting_agent)
-    elif starting_agent["type"] == "dataCollector":
+    if starting_agent["type"] == "dataCollector":
         return create_data_collector_node(starting_agent)
-    elif starting_agent["type"] == "emailAgent":
+    if starting_agent["type"] == "emailAgent":
         return create_email_agent_node(starting_agent)
-    else:
-        return create_end_node()
+    return create_end_node()
 
 
-def create_router_node(agent: Dict[str, Any]) -> NodeConfig:
+def create_router_node(agent: dict[str, Any]) -> NodeConfig:
     """Create a router node."""
     agent_id = agent["identifier"]
     prompt = agent.get("prompt", "I will route your request to the appropriate agent.")
@@ -452,7 +452,7 @@ def create_router_node(agent: Dict[str, Any]) -> NodeConfig:
         ],
         "task_messages": [
             {
-                "role": "system", 
+                "role": "system",
                 "content": (
                     f"{prompt}\n\n"
                     f"Available routing options:\n{children_desc}\n\n"
@@ -464,9 +464,9 @@ def create_router_node(agent: Dict[str, Any]) -> NodeConfig:
     }
 
 
-def create_data_collector_node(agent: Dict[str, Any]) -> NodeConfig:
+def create_data_collector_node(agent: dict[str, Any]) -> NodeConfig:
     """Create a data collector node."""
-    agent_id = agent["identifier"] 
+    agent_id = agent["identifier"]
     prompt = agent.get("prompt", "I need to collect some information from you.")
     data_points = agent.get("dataPoints", [])
     children = agent.get("children", [])
@@ -522,7 +522,7 @@ def create_data_collector_node(agent: Dict[str, Any]) -> NodeConfig:
     }
 
 
-def create_email_agent_node(agent: Dict[str, Any]) -> NodeConfig:
+def create_email_agent_node(agent: dict[str, Any]) -> NodeConfig:
     """Create an email agent node."""
     agent_id = agent["identifier"]
     prompt = agent.get("prompt", "I will compose and send an email for you.")
@@ -534,7 +534,7 @@ def create_email_agent_node(agent: Dict[str, Any]) -> NodeConfig:
     
     data_context = ""
     if all_collected_data:
-        data_context = f"\n\nCollected data to reference:\n"
+        data_context = "\n\nCollected data to reference:\n"
         for key, value in all_collected_data.items():
             data_context += f"- {key}: {value}\n"
     
@@ -542,7 +542,7 @@ def create_email_agent_node(agent: Dict[str, Any]) -> NodeConfig:
         "name": f"email_agent_{agent_id}",
         "role_messages": [
             {
-                "role": "system", 
+                "role": "system",
                 "content": (
                     f"You are an Email Agent (ID: {agent_id}) in a sequential flow. "
                     "Your job is to compose and send an email. Use the sendEmail function "
@@ -584,12 +584,12 @@ def create_end_node() -> NodeConfig:
 class SequentialJSONFlowAgent:
     """Main sequential JSON flow agent class that processes dynamic JSON configurations."""
 
-    def __init__(self, json_config: Dict[str, Any] | None = None):
+    def __init__(self, json_config: dict[str, Any] | None = None):
         self.flow_manager: FlowManager | None = None
         self.task: PipelineTask | None = None
         self.load_configuration(json_config or DEFAULT_JSON_CONFIG)
 
-    def load_configuration(self, config: Dict[str, Any]) -> None:
+    def load_configuration(self, config: dict[str, Any]) -> None:
         """Load and validate JSON configuration."""
         logger.info(f"Loading Sequential JSON configuration: {json.dumps(config, indent=2)}")
 
@@ -619,7 +619,7 @@ class SequentialJSONFlowAgent:
         
         # Reset conversation state
         flow_data.conversation_state = {
-            "current_agent_id": "1", 
+            "current_agent_id": "1",
             "flow_active": True
         }
         flow_data.current_agent_id = "1"
@@ -632,7 +632,7 @@ class SequentialJSONFlowAgent:
         room_url: str,
         token: str,
         user_id: str | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create the sequential flow pipeline."""
         try:
             # Configure Daily transport
@@ -723,7 +723,7 @@ class SequentialJSONFlowAgent:
         runner = PipelineRunner()
         await runner.run(self.task)
 
-    def get_flow_data(self) -> Dict[str, Any]:
+    def get_flow_data(self) -> dict[str, Any]:
         """Get current flow configuration and state."""
         return {
             "configuration": flow_data.current_config,

@@ -15,8 +15,10 @@ import logging
 import os
 from pathlib import Path
 from typing import Any
-from dotenv import load_dotenv
+
 from browserbase import Browserbase
+from dotenv import load_dotenv
+
 # from kernel import Kernel
 # Load environment variables from .env file
 env_path = Path(__file__).parent.parent / ".env"
@@ -67,7 +69,7 @@ except ImportError as e:
 
 # Default test JSON configuration
 
-global tts 
+global tts
 tts= OpenAITTSService(voice="nova")
 
 DEFAULT_JSON_CONFIG = {
@@ -300,7 +302,7 @@ async def browser_function(
                 logger.warning(f"⚠️  Error during browser session closure: {e}")
         
         # Clean up agent reference
-        if 'browser_agent' in locals():
+        if "browser_agent" in locals():
             del browser_agent
 
 

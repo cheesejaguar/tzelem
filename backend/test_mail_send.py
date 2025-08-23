@@ -56,39 +56,11 @@ If you received this email, the mail API is working correctly!
 ---
 This is an automated test email from Tzelem's mail testing script.
         """,
-<<<<<<< HEAD
-        "from_name": "Tzelem Test Script",
-    }
-
-    try:
-        print("🚀 Sending test email to hello@tzlm.io...")
-        print(f"   Endpoint: {endpoint}")
-        print(f"   Subject: {email_data['subject']}")
-
-        # Send the request
-        response = requests.post(
-            endpoint, json=email_data, headers={"Content-Type": "application/json"}, timeout=10
-        )
-
-        # Check response
-        if response.status_code == 200:
-            result = response.json()
-            print("✅ Email sent successfully!")
-            print(f"   Status: {result.get('status')}")
-            print(f"   Message: {result.get('message')}")
-            if result.get("messageId"):
-                print(f"   Message ID: {result.get('messageId')}")
-        else:
-            print("❌ Failed to send email")
-            print(f"   Status Code: {response.status_code}")
-            print(f"   Response: {response.text}")
-
-=======
         "from_name": "Tzelem Test Script"
     }
     
     try:
-        print(f"🚀 Sending test email to hello@tzlm.io...")
+        print("🚀 Sending test email to hello@tzlm.io...")
         print(f"   Endpoint: {endpoint}")
         print(f"   Subject: {email_data['subject']}")
         
@@ -96,36 +68,30 @@ This is an automated test email from Tzelem's mail testing script.
         response = requests.post(
             endpoint,
             json=email_data,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
+            timeout=10
         )
         
         # Check response
         if response.status_code == 200:
             result = response.json()
-            print(f"✅ Email sent successfully!")
+            print("✅ Email sent successfully!")
             print(f"   Status: {result.get('status')}")
             print(f"   Message: {result.get('message')}")
             if result.get('messageId'):
                 print(f"   Message ID: {result.get('messageId')}")
         else:
-            print(f"❌ Failed to send email")
+            print("❌ Failed to send email")
             print(f"   Status Code: {response.status_code}")
             print(f"   Response: {response.text}")
             
->>>>>>> 826fd21 (feat: add comprehensive mail API test scripts and fix AgentMail integration)
             # Parse error if JSON
             try:
                 error_data = response.json()
                 print(f"   Error Detail: {error_data.get('detail', 'Unknown error')}")
-<<<<<<< HEAD
             except Exception:  # noqa: S110
                 pass
-
-=======
-            except:
-                pass
                 
->>>>>>> 826fd21 (feat: add comprehensive mail API test scripts and fix AgentMail integration)
     except requests.exceptions.ConnectionError:
         print("❌ Connection Error: Could not connect to the backend server")
         print("   Make sure the backend is running on http://localhost:8000")
@@ -138,19 +104,11 @@ def check_health():
     """Check the health of the mail service"""
     base_url = "http://localhost:8000"
     health_endpoint = f"{base_url}/api/mail/health"
-<<<<<<< HEAD
-
-    try:
-        print("\n📋 Checking mail service health...")
-        response = requests.get(health_endpoint, timeout=5)
-
-=======
     
     try:
         print("\n📋 Checking mail service health...")
-        response = requests.get(health_endpoint)
+        response = requests.get(health_endpoint, timeout=5)
         
->>>>>>> 826fd21 (feat: add comprehensive mail API test scripts and fix AgentMail integration)
         if response.status_code == 200:
             health = response.json()
             print(f"   Status: {health.get('status')}")
@@ -159,14 +117,9 @@ def check_health():
             print(f"   Mock Mode: {health.get('mock_mode')}")
             print(f"   Message: {health.get('message')}")
             return health
-<<<<<<< HEAD
-        print(f"   Failed to check health - Status: {response.status_code}")
-        return None
-=======
         else:
             print(f"   Failed to check health - Status: {response.status_code}")
             return None
->>>>>>> 826fd21 (feat: add comprehensive mail API test scripts and fix AgentMail integration)
     except Exception as e:
         print(f"   Could not check health: {e}")
         return None
@@ -176,7 +129,6 @@ if __name__ == "__main__":
     print("=" * 60)
     print("TZELEM MAIL API TEST SCRIPT")
     print("=" * 60)
-<<<<<<< HEAD
 
     # First check health
     health = check_health()
@@ -192,20 +144,3 @@ if __name__ == "__main__":
         print("\n⚠️  Note: AGENTMAIL_API_KEY is not configured.")
         print("   Set the environment variable to enable real email sending.")
         print("   export AGENTMAIL_API_KEY='your-api-key-here'")
-=======
-    
-    # First check health
-    health = check_health()
-    
-    # Send test email
-    print("")
-    send_test_email()
-    
-    print("\n" + "=" * 60)
-    print("Test completed!")
-    
-    if health and not health.get('api_key_configured'):
-        print("\n⚠️  Note: AGENTMAIL_API_KEY is not configured.")
-        print("   Set the environment variable to enable real email sending.")
-        print("   export AGENTMAIL_API_KEY='your-api-key-here'")
->>>>>>> 826fd21 (feat: add comprehensive mail API test scripts and fix AgentMail integration)
