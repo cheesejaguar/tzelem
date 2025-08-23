@@ -62,5 +62,5 @@ module = ["pipecat.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["test_mail_send", "test_mail_comprehensive", "test_mail_batch", "test_mail_performance"]
+module = ["test_mail_send", "test_mail_comprehensive", "test_mail_batch", "test_mail_performance", "tests.*"]
 ignore_errors = true
