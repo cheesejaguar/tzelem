@@ -25,6 +25,33 @@ const API_BASE_URL = getApiBaseUrl();
 const DEBUG_MODE =
   import.meta.env.VITE_ENABLE_DEBUG === "true" || import.meta.env.DEV;
 
+// Voice Room and Flow Run interfaces
+export interface VoiceRoomResponse {
+  room: string;
+  join_token: string;
+}
+
+export interface JSONFlowRoomResponse {
+  room: string;
+  joinToken: string;
+  agentStatus: string;
+  paradigm: string;
+  subAgentsCount: number;
+}
+
+export interface FlowRunRequest {
+  flowId?: string;
+  flow?: any;
+}
+
+export interface FlowRunResponse {
+  runId: string;
+  voice: {
+    room: string;
+    token?: string;
+  };
+}
+
 // Create axios instance with default configuration
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -154,18 +181,7 @@ export function createEventSource(endpoint: string): EventSource {
   return eventSource;
 }
 
-// Export the API base URL for components that need it
-export const getApiUrl = () => API_BASE_URL || window.location.origin;
-
-// Export configured axios instance
-export default api;
-
-// Additional interfaces and functions for Daily/Voice integration
-export interface VoiceRoomResponse {
-  room: string;
-  join_token: string;
-}
-
+// Additional interfaces for JSON Flow rooms
 export interface JSONFlowRoomResponse {
   room: string;
   joinToken: string;
@@ -174,23 +190,10 @@ export interface JSONFlowRoomResponse {
   subAgentsCount: number;
 }
 
-export interface FlowRunRequest {
-  flowId?: string;
-  flow?: any;
-}
-
-export interface FlowRunResponse {
-  runId: string;
-  voice: {
-    room: string;
-    token?: string;
-  };
-}
-
 // Voice/Daily API functions using the axios instance
 export const apiClient = {
   async createVoiceRoom(): Promise<VoiceRoomResponse> {
-    return handleApiResponse<VoiceRoomResponse>(api.post("/api/voice/rooms"));
+    return handleApiResponse<VoiceRoomResponse>(api.post('/api/voice/rooms'));
   },
 
   async createJSONFlowRoom(flowConfig?: Record<string, unknown>): Promise<JSONFlowRoomResponse> {
@@ -199,6 +202,12 @@ export const apiClient = {
   },
 
   async startFlowRun(data: FlowRunRequest): Promise<FlowRunResponse> {
-    return handleApiResponse<FlowRunResponse>(api.post("/api/runs", data));
+    return handleApiResponse<FlowRunResponse>(api.post('/api/runs', data));
   },
 };
+
+// Export the API base URL for components that need it
+export const getApiUrl = () => API_BASE_URL || window.location.origin;
+
+// Export configured axios instance
+export default api;

@@ -85,16 +85,21 @@ async def send_mail(mail_data: MailRequest) -> MailResponse:
         if not inbox_id:
             # Create a default inbox if not configured
             try:
-                inbox = client.inboxes.create(display_name=mail_data.from_name or "Tzelem")
+                inbox = client.inboxes.create(
+                    display_name=mail_data.from_name or "Tzelem"
+                )
                 # The inbox_id is the email address
                 inbox_id = inbox.inbox_id
                 logger.info(f"Created AgentMail inbox: {inbox_id}")
-
+                
                 # Wait a moment for the inbox to be available
                 time.sleep(2)
             except Exception as e:
                 logger.error(f"Failed to create inbox: {e}")
-                raise HTTPException(status_code=500, detail=f"Failed to create mail inbox: {e!s}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to create mail inbox: {e!s}"
+                )
 
         # Send email via AgentMail
         response = client.inboxes.messages.send(
@@ -102,7 +107,7 @@ async def send_mail(mail_data: MailRequest) -> MailResponse:
             to=mail_data.to,
             subject=mail_data.subject,
             html=mail_data.html,
-            text=mail_data.text,
+            text=mail_data.text
         )
 
         if logger.isEnabledFor(logging.DEBUG):
