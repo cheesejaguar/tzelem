@@ -15,7 +15,8 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -66,7 +67,6 @@ except ImportError as e:
     VAD_AVAILABLE = False
 
 # Global TTS service
-global tts
 tts = OpenAITTSService(voice="nova")
 
 # Default test JSON configuration

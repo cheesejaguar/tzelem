@@ -20,7 +20,8 @@ except ImportError:
     SequentialJSONFlowAgent = None
     productivity_flow_agent = None
     PIPECAT_AVAILABLE = False
-    logging.warning("Pipecat dependencies not available - voice agent features disabled")
+    logger = logging.getLogger(__name__)
+    logger.warning("Pipecat dependencies not available - voice agent features disabled")
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
 
@@ -206,7 +207,7 @@ async def create_productivity_room(background_tasks: BackgroundTasks):
     """
     if not PIPECAT_AVAILABLE:
         raise HTTPException(
-            status_code=503, 
+            status_code=503,
             detail="Voice agent features are not available in this deployment"
         )
         
@@ -252,7 +253,7 @@ async def create_json_flow_room(
     """
     if not PIPECAT_AVAILABLE:
         raise HTTPException(
-            status_code=503, 
+            status_code=503,
             detail="Voice agent features are not available in this deployment"
         )
         
@@ -309,7 +310,7 @@ async def create_sequential_flow_room(
     """
     if not PIPECAT_AVAILABLE or SequentialJSONFlowAgent is None:
         raise HTTPException(
-            status_code=503, 
+            status_code=503,
             detail="Sequential flow agent features are not available in this deployment"
         )
         

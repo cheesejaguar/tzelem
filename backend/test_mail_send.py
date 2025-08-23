@@ -3,9 +3,9 @@
 Test script to send a test email via the mail API to hello@tzlm.io
 """
 
-import json
-import requests
 from datetime import datetime
+
+import requests
 
 
 def send_test_email():
@@ -78,7 +78,7 @@ This is an automated test email from Tzelem's mail testing script.
             print("✅ Email sent successfully!")
             print(f"   Status: {result.get('status')}")
             print(f"   Message: {result.get('message')}")
-            if result.get('messageId'):
+            if result.get("messageId"):
                 print(f"   Message ID: {result.get('messageId')}")
         else:
             print("❌ Failed to send email")
@@ -117,9 +117,8 @@ def check_health():
             print(f"   Mock Mode: {health.get('mock_mode')}")
             print(f"   Message: {health.get('message')}")
             return health
-        else:
-            print(f"   Failed to check health - Status: {response.status_code}")
-            return None
+        print(f"   Failed to check health - Status: {response.status_code}")
+        return None
     except Exception as e:
         print(f"   Could not check health: {e}")
         return None

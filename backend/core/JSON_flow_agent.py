@@ -18,6 +18,19 @@ from typing import Any
 
 from browserbase import Browserbase
 from dotenv import load_dotenv
+
+# Browser-use imports - may not be available in all environments
+try:
+    from browser_use import Agent, BrowserProfile, BrowserSession
+    from langchain_openai import ChatOpenAI
+    BROWSER_USE_AVAILABLE = True
+except ImportError:
+    Agent = None
+    BrowserProfile = None
+    BrowserSession = None
+    ChatOpenAI = None
+    BROWSER_USE_AVAILABLE = False
+
 # from kernel import Kernel
 # Load environment variables from .env file
 env_path = Path(__file__).parent.parent / ".env"
@@ -68,8 +81,7 @@ except ImportError as e:
 
 # Default test JSON configuration
 
-global tts
-tts= OpenAITTSService(voice="nova")
+tts = OpenAITTSService(voice="nova")
 
 DEFAULT_JSON_CONFIG = {
     "paradigm": "Agentic",
@@ -230,6 +242,16 @@ async def browser_function(
     logger.info(f"Browserbase Session ID: {session.id}")
     logger.info(f"Debug URL: https://www.browserbase.com/sessions/{session.id}")
 
+    if not BROWSER_USE_AVAILABLE:
+        logger.error("Browser-use dependencies not available")
+        return BrowserResult(
+            agent_id=agent.get("identifier"),
+            agent_type="browser",
+            prompt=agent.get("prompt"),
+            status=False,
+            run_result="Browser-use dependencies not available in this environment"
+        )
+    
     # Configure browser profile
     profile = BrowserProfile(
         keep_alive=False,  # Essential for proper cleanup
@@ -296,7 +318,7 @@ async def browser_function(
         except Exception as e:
             error_msg = str(e).lower()
             if "browser is closed" in error_msg or "disconnected" in error_msg:
-                logger.info("ℹ️  Browser session was already closed (expected behavior)")
+                logger.info("Browser session was already closed (expected behavior)")
             else:
                 logger.warning(f"⚠️  Error during browser session closure: {e}")
         
