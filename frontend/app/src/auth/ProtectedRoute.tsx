@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useAuth } from "../src/contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 import { LoginModal } from "./LoginModal";
 
 interface ProtectedRouteProps {

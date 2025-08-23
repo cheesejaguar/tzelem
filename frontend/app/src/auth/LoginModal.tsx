@@ -1,15 +1,15 @@
 import React from "react";
-import { useAuth } from "../src/contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "../src/components/ui/dialog";
-import { Button } from "../src/components/ui/button";
+} from "../components/ui/dialog";
+import { Button } from "../components/ui/button";
 import { Github, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "../src/components/ui/alert";
+import { Alert, AlertDescription } from "../components/ui/alert";
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24">

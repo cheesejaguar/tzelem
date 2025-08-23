@@ -1,13 +1,13 @@
 import React from "react";
-import { useAuth } from "../src/contexts/AuthContext";
-import { Button } from "../src/components/ui/button";
+import { useAuth } from "../contexts/AuthContext";
+import { Button } from "../components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../src/components/ui/dropdown-menu";
+} from "../components/ui/dropdown-menu";
 import { User, LogOut, Github } from "lucide-react";
 
 const GoogleIcon = () => (
