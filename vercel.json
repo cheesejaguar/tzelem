@@ -5,9 +5,20 @@
   "installCommand": "npm install && npm run install:frontend",
   "functions": {
     "api/index.py": {
-      "runtime": "python3.11",
+      "runtime": "python3.11", 
       "maxDuration": 30,
-      "memory": 1024
+      "memory": 1024,
+      "excludeFiles": [
+        "backend/tests/**",
+        "backend/__pycache__/**",
+        "backend/.pytest_cache/**",
+        "backend/**/*.pyc",
+        "backend/**/__pycache__/**",
+        "scripts/**",
+        "infra/**",
+        "*.md",
+        "requirements.txt"
+      ]
     }
   },
   "rewrites": [
