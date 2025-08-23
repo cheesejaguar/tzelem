@@ -67,7 +67,9 @@ async def start_run(request: RunStartRequest):
         )
 
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"Starting run with flowId: {request.flowId} or flow: {request.flow}")
+            logger.debug(
+                f"Starting run with flowId: {request.flowId} or flow: {request.flow}"
+            )
 
         return RunStartResponse(runId=run_id, voice=voice_info)
 
@@ -125,11 +127,27 @@ async def generate_sse_events(run_id: str):
         # TODO: Implement actual event streaming logic
         # For now, generate some sample events
         events = [
-            {"type": "run_started", "runId": run_id, "timestamp": "2025-08-23T10:00:00Z"},
-            {"type": "node_started", "nodeId": "agent_node_1", "timestamp": "2025-08-23T10:00:01Z"},
+            {
+                "type": "run_started",
+                "runId": run_id,
+                "timestamp": "2025-08-23T10:00:00Z",
+            },
+            {
+                "type": "node_started",
+                "nodeId": "agent_node_1",
+                "timestamp": "2025-08-23T10:00:01Z",
+            },
             {"type": "progress", "progress": 0.25, "timestamp": "2025-08-23T10:00:05Z"},
-            {"type": "node_completed", "nodeId": "agent_node_1", "timestamp": "2025-08-23T10:00:10Z"},
-            {"type": "node_started", "nodeId": "agent_node_2", "timestamp": "2025-08-23T10:00:11Z"},
+            {
+                "type": "node_completed",
+                "nodeId": "agent_node_1",
+                "timestamp": "2025-08-23T10:00:10Z",
+            },
+            {
+                "type": "node_started",
+                "nodeId": "agent_node_2",
+                "timestamp": "2025-08-23T10:00:11Z",
+            },
             {"type": "progress", "progress": 0.50, "timestamp": "2025-08-23T10:00:15Z"},
         ]
 
@@ -184,5 +202,6 @@ async def stream_run_events(run_id: str):
 
     except Exception as e:
         logger.exception(f"Failed to start event stream for run {run_id}")
-        raise HTTPException(status_code=500, detail="Failed to start event stream") from e
-
+        raise HTTPException(
+            status_code=500, detail="Failed to start event stream"
+        ) from e
