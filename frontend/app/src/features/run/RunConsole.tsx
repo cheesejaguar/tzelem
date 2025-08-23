@@ -38,7 +38,7 @@ export function RunConsole({ className, autoStart = false }: RunConsoleProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // SSE connection for real-time events
-  const sseUrl = runId ? `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/runs/${runId}/events` : null;
+  const sseUrl = runId ? `/api/runs/${runId}/events` : null;
   
   const { 
     events, 

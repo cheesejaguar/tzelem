@@ -19,7 +19,8 @@ export function ApiTestPage() {
 
   const testHealthCheck = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/health`);
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:8000' : '');
+      const response = await fetch(`${apiUrl}/health`);
       const data = await response.json();
       addResult(`✅ Health check passed: ${JSON.stringify(data)}`);
       toast.success('Health check passed');
@@ -157,7 +158,7 @@ export function ApiTestPage() {
         <div className="flex items-center justify-between">
           <CardTitle>API Integration Test</CardTitle>
           <Badge variant="outline">
-            {import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}
+            {import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:8000' : window.location.origin)}
           </Badge>
         </div>
       </CardHeader>

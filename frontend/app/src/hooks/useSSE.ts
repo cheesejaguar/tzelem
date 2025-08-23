@@ -94,7 +94,11 @@ export function useSSE(
 
     try {
       console.log(`[SSE] Connecting to ${urlRef.current}...`);
-      const eventSource = new EventSource(urlRef.current);
+      // Construct full URL if needed
+      const fullUrl = urlRef.current.startsWith('http') 
+        ? urlRef.current 
+        : `${window.location.origin}${urlRef.current}`;
+      const eventSource = new EventSource(fullUrl);
       eventSourceRef.current = eventSource;
 
       // Handle connection open

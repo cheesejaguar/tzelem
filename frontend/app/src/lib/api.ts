@@ -1,9 +1,25 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { toast } from 'sonner';
 
-// API base URL from environment or default to localhost
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-const DEBUG_MODE = import.meta.env.VITE_ENABLE_DEBUG === 'true';
+// API base URL from environment or default based on current location
+const getApiBaseUrl = () => {
+  // If explicitly set in environment, use that
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Otherwise, use relative URLs for production/staging (will use same domain)
+  // and localhost for development
+  if (import.meta.env.DEV) {
+    return 'http://localhost:8000';
+  }
+  
+  // In production/staging, use relative URL (same domain)
+  return '';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+const DEBUG_MODE = import.meta.env.VITE_ENABLE_DEBUG === 'true' || import.meta.env.DEV;
 
 // Create axios instance with default configuration
 const api: AxiosInstance = axios.create({
@@ -108,7 +124,8 @@ export function handleApiResponse<T>(promise: Promise<any>): Promise<T> {
 
 // Helper function for SSE endpoints
 export function createEventSource(endpoint: string): EventSource {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const baseUrl = API_BASE_URL || window.location.origin;
+  const url = `${baseUrl}${endpoint}`;
   
   if (DEBUG_MODE) {
     console.log(`[SSE Connection] Opening connection to ${url}`);
@@ -125,6 +142,9 @@ export function createEventSource(endpoint: string): EventSource {
   
   return eventSource;
 }
+
+// Export the API base URL for components that need it
+export const getApiUrl = () => API_BASE_URL || window.location.origin;
 
 // Export configured axios instance
 export default api;

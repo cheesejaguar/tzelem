@@ -16,11 +16,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_API_BASE_URL": "@api_base_url",
-    "CONVEX_URL": "@convex_url",
-    "DAILY_API_KEY": "@daily_api_key",
-    "OPENAI_API_KEY": "@openai_api_key"
-  }
+  ]
 }
