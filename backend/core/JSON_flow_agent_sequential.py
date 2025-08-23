@@ -323,11 +323,7 @@ async def record_data(
     
     collected_data = flow_data.collected_data[current_agent_id]
     all_collected = all(
-<<<<<<< HEAD
         point["name"] in collected_data and collected_data[point["name"]]
-=======
-        point["name"] in collected_data and collected_data[point["name"]] 
->>>>>>> 4dd1e2f (first commit)
         for point in data_points
     )
     

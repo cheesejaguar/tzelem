@@ -10,8 +10,10 @@ from services.daily_service import create_room
 # Make heavy dependencies optional for serverless deployment
 try:
     from core.JSON_flow_agent import JSONFlowAgent
-    from core.JSON_flow_agent_sequential import SequentialJSONFlowAgent
     from core.productivity_flow_agent import productivity_flow_agent
+    # Temporarily disable sequential agent due to merge conflicts
+    # from core.JSON_flow_agent_sequential import SequentialJSONFlowAgent
+    SequentialJSONFlowAgent = None
     PIPECAT_AVAILABLE = True
 except ImportError:
     JSONFlowAgent = None
@@ -125,6 +127,9 @@ async def run_json_flow_agent(room_url: str, token: str, json_config: dict = Non
 
 async def run_sequential_flow_agent(room_url: str, token: str, json_config: dict = None):
     """Background task to run the sequential JSON flow agent."""
+    if SequentialJSONFlowAgent is None:
+        logger.error("Sequential JSON flow agent not available due to import errors")
+        return
     try:
         # Create a new instance with the provided config
         agent = SequentialJSONFlowAgent(json_config)
@@ -302,6 +307,12 @@ async def create_sequential_flow_room(
     Returns:
         SequentialFlowRoomResponse: Object containing room details and agent info
     """
+    if not PIPECAT_AVAILABLE or SequentialJSONFlowAgent is None:
+        raise HTTPException(
+            status_code=503, 
+            detail="Sequential flow agent features are not available in this deployment"
+        )
+        
     try:
         room_url, token = await create_room()
 

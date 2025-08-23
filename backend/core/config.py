@@ -17,7 +17,9 @@ class Settings(BaseSettings):
     daily_api_url: str = "https://api.daily.co/v1"
 
     cors_origins: list[str] = [
-        "http://localhost:5173",  # Vite dev server
+        "http://localhost:5173",  # Vite dev server (default)
+        "http://localhost:5174",  # Vite dev server (alternative)
+        "http://localhost:5175",  # Vite dev server (alternative)
         "http://localhost:3000",  # Alternative dev port
         "https://staging.tzlm.io",  # Staging environment
         "https://tzlm.io",  # Production environment
