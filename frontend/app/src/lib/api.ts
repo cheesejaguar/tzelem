@@ -25,6 +25,25 @@ const API_BASE_URL = getApiBaseUrl();
 const DEBUG_MODE =
   import.meta.env.VITE_ENABLE_DEBUG === "true" || import.meta.env.DEV;
 
+// Voice Room and Flow Run interfaces
+export interface VoiceRoomResponse {
+  room: string;
+  join_token: string;
+}
+
+export interface FlowRunRequest {
+  flowId?: string;
+  flow?: any;
+}
+
+export interface FlowRunResponse {
+  runId: string;
+  voice: {
+    room: string;
+    token?: string;
+  };
+}
+
 // Create axios instance with default configuration
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -154,18 +173,32 @@ export function createEventSource(endpoint: string): EventSource {
   return eventSource;
 }
 
-// Export the API base URL for components that need it
-export const getApiUrl = () => API_BASE_URL || window.location.origin;
+// API Client class for specific endpoints
+class ApiClient {
+  private baseUrl: string;
 
-// Export configured axios instance
-export default api;
+  constructor(baseUrl: string = API_BASE_URL) {
+    this.baseUrl = baseUrl;
+  }
 
-// Additional interfaces and functions for Daily/Voice integration
-export interface VoiceRoomResponse {
-  room: string;
-  join_token: string;
+  async createVoiceRoom(): Promise<VoiceRoomResponse> {
+    const response = await api.post<VoiceRoomResponse>('/api/voice/rooms');
+    return response.data;
+  }
+
+  async createJSONFlowRoom(flowConfig?: Record<string, unknown>): Promise<JSONFlowRoomResponse> {
+    const requestData = flowConfig ? { json_config: flowConfig } : {};
+    const response = await api.post<JSONFlowRoomResponse>('/api/voice/json-flow-rooms', requestData);
+    return response.data;
+  }
+
+  async startFlowRun(data: FlowRunRequest): Promise<FlowRunResponse> {
+    const response = await api.post<FlowRunResponse>('/api/runs', data);
+    return response.data;
+  }
 }
 
+// Additional interfaces for JSON Flow rooms
 export interface JSONFlowRoomResponse {
   room: string;
   joinToken: string;
@@ -174,31 +207,11 @@ export interface JSONFlowRoomResponse {
   subAgentsCount: number;
 }
 
-export interface FlowRunRequest {
-  flowId?: string;
-  flow?: any;
-}
+// Export the API client instance
+export const apiClient = new ApiClient();
 
-export interface FlowRunResponse {
-  runId: string;
-  voice: {
-    room: string;
-    token?: string;
-  };
-}
+// Export the API base URL for components that need it
+export const getApiUrl = () => API_BASE_URL || window.location.origin;
 
-// Voice/Daily API functions using the axios instance
-export const apiClient = {
-  async createVoiceRoom(): Promise<VoiceRoomResponse> {
-    return handleApiResponse<VoiceRoomResponse>(api.post("/api/voice/rooms"));
-  },
-
-  async createJSONFlowRoom(flowConfig?: Record<string, unknown>): Promise<JSONFlowRoomResponse> {
-    const requestData = flowConfig ? { json_config: flowConfig } : {};
-    return handleApiResponse<JSONFlowRoomResponse>(api.post("/api/voice/json-flow-rooms", requestData));
-  },
-
-  async startFlowRun(data: FlowRunRequest): Promise<FlowRunResponse> {
-    return handleApiResponse<FlowRunResponse>(api.post("/api/runs", data));
-  },
-};
+// Export configured axios instance
+export default api;
