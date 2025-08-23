@@ -1,0 +1,48 @@
+# Virtual environments
+.venv/
+venv/
+env/
+backend/.venv/
+backend/venv/
+backend/env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.pytest_cache/
+
+# Test files
+backend/test_*.py
+backend/tests/
+backend/*.sh
+
+# Development files
+backend/uv.lock
+backend/.env
+backend/.env.*
+backend/backend.log
+backend/requirements 2.txt
+
+# Documentation
+*.md
+README.md
+backend/*.md
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
