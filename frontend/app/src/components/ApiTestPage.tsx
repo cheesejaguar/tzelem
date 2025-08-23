@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { listFlows, createOrUpdateFlow } from '@/lib/api/flows';
 import { createVoiceRoom } from '@/lib/api/voice';
 import { startRun } from '@/lib/api/runs';
+import { checkMailHealth, sendTextMail, sendTemplatedMail } from '@/lib/api/mail';
 import { FlowJSON } from '@/lib/types/flow';
 
 export function ApiTestPage() {
@@ -131,6 +132,67 @@ export function ApiTestPage() {
     }
   };
 
+  const testMailHealth = async () => {
+    try {
+      const health = await checkMailHealth();
+      const statusEmoji = health.status === 'healthy' ? '✅' : '⚠️';
+      addResult(`${statusEmoji} Mail health: ${health.status} - ${health.message}`);
+      if (health.mock_mode) {
+        addResult(`  📝 Running in mock mode`);
+      }
+      if (!health.api_key_configured) {
+        addResult(`  ❌ API key not configured`);
+      }
+      if (!health.agentmail_installed) {
+        addResult(`  ❌ AgentMail not installed`);
+      }
+      toast[health.status === 'healthy' ? 'success' : 'warning']('Mail health check completed');
+    } catch (error) {
+      addResult(`❌ Mail health check failed: ${error}`);
+      toast.error('Mail health check failed');
+    }
+  };
+
+  const testSendTextMail = async () => {
+    try {
+      const response = await sendTextMail(
+        'test@example.com',
+        'Test Email from Tzelem',
+        'This is a test email sent from the Tzelem API test page.\n\nIf you receive this, the mail service is working correctly!',
+        'Tzelem Test Suite'
+      );
+      addResult(`✅ Text email ${response.status}: ${response.message}`);
+      if (response.messageId) {
+        addResult(`  📧 Message ID: ${response.messageId}`);
+      }
+      toast.success(`Email ${response.status}`);
+    } catch (error) {
+      addResult(`❌ Send text email failed: ${error}`);
+      toast.error('Failed to send text email');
+    }
+  };
+
+  const testSendTemplatedMail = async () => {
+    try {
+      const response = await sendTemplatedMail(
+        'test@example.com',
+        'welcome',
+        {
+          name: 'Test User',
+          fromName: 'Tzelem Team'
+        }
+      );
+      addResult(`✅ Templated email ${response.status}: ${response.message}`);
+      if (response.messageId) {
+        addResult(`  📧 Message ID: ${response.messageId}`);
+      }
+      toast.success('Welcome email sent');
+    } catch (error) {
+      addResult(`❌ Send templated email failed: ${error}`);
+      toast.error('Failed to send templated email');
+    }
+  };
+
   const runAllTests = async () => {
     setIsLoading(true);
     setResults([]);
@@ -148,6 +210,15 @@ export function ApiTestPage() {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     await testStartRun();
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    await testMailHealth();
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    await testSendTextMail();
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    await testSendTemplatedMail();
     
     setIsLoading(false);
   };
@@ -179,6 +250,16 @@ export function ApiTestPage() {
           </Button>
           <Button onClick={testStartRun} disabled={isLoading} size="sm">
             Test Start Run
+          </Button>
+          <Separator orientation="vertical" className="h-8" />
+          <Button onClick={testMailHealth} disabled={isLoading} size="sm">
+            Mail Health
+          </Button>
+          <Button onClick={testSendTextMail} disabled={isLoading} size="sm">
+            Send Text Email
+          </Button>
+          <Button onClick={testSendTemplatedMail} disabled={isLoading} size="sm">
+            Send Template
           </Button>
           <Separator orientation="vertical" className="h-8" />
           <Button onClick={runAllTests} disabled={isLoading} variant="default">
