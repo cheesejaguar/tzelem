@@ -40,445 +40,567 @@
     />
     <style>
       :root {
-        --bg: #0b0f19;
-        --bg-2: #0e1426;
-        --panel: #12192c;
-        --text: #e6e9f2;
-        --muted: #a7b0c0;
-        --brand: #7aa2ff;
-        --brand-2: #b18cff;
-        --success: #3ad29f;
-        --ring: rgba(122, 162, 255, 0.55);
-        --maxw: 1080px;
-        --radius: 18px;
-        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        --bg: #ffffff;
+        --bg-secondary: #f8f9fa;
+        --text: #1a1a1a;
+        --text-muted: #6b7280;
+        --border: #e5e7eb;
+        --accent: #3b82f6;
+        --accent-hover: #2563eb;
+        --success: #10b981;
+        --success-bg: #d1fae5;
+        --success-border: #a7f3d0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+          0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 8px;
+        --radius-lg: 12px;
       }
-      @media (prefers-color-scheme: light) {
-        :root {
-          --bg: #f7f9fc;
-          --bg-2: #eef3ff;
-          --panel: #ffffff;
-          --text: #0b0f19;
-          --muted: #5b6475;
-          --ring: rgba(80, 120, 255, 0.4);
-        }
-      }
-      *,
-      *::before,
-      *::after {
+
+      * {
+        margin: 0;
+        padding: 0;
         box-sizing: border-box;
       }
-      html,
+
       body {
-        height: 100%;
-      }
-      body {
-        margin: 0;
-        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-          Inter, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        line-height: 1.6;
         color: var(--text);
-        background: radial-gradient(
-            1200px 600px at 80% -10%,
-            rgba(177, 140, 255, 0.18),
-            transparent 60%
-          ),
-          radial-gradient(
-            1000px 500px at -10% 10%,
-            rgba(122, 162, 255, 0.18),
-            transparent 60%
-          ),
-          linear-gradient(180deg, var(--bg), var(--bg-2));
-        -webkit-font-smoothing: antialiased;
-        text-rendering: optimizeLegibility;
+        background-color: var(--bg);
       }
-      a {
-        color: inherit;
-        text-decoration: none;
-      }
+
       .container {
-        max-width: var(--maxw);
-        margin-inline: auto;
-        padding: 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
       }
+
+      /* Header */
       header {
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
         position: sticky;
         top: 0;
-        backdrop-filter: blur(8px);
-        background: color-mix(in oklab, var(--bg) 75%, transparent);
-        border-bottom: 1px solid
-          color-mix(in oklab, var(--text) 12%, transparent);
-        z-index: 10;
+        z-index: 100;
       }
+
       .nav {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
+        padding: 16px 0;
       }
+
       .brand {
         display: flex;
         align-items: center;
-        gap: 12px;
-        font-weight: 700;
-        letter-spacing: 0.3px;
+        gap: 8px;
+        text-decoration: none;
+        color: var(--text);
       }
+
       .logo {
-        width: 28px;
-        height: 28px;
-        display: grid;
-        place-items: center;
-        border-radius: 10px;
-        background: linear-gradient(135deg, var(--brand), var(--brand-2));
-        box-shadow: var(--shadow);
-      }
-      .links {
+        width: 32px;
+        height: 32px;
+        background: var(--text);
+        border-radius: 6px;
         display: flex;
-        gap: 18px;
         align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
       }
-      .links a {
-        opacity: 0.9;
+
+      .brand-text {
+        font-size: 20px;
+        font-weight: 600;
       }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+      }
+
+      .nav-links a {
+        text-decoration: none;
+        color: var(--text-muted);
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+
+      .nav-links a:hover {
+        color: var(--text);
+      }
+
       .btn {
         display: inline-flex;
         align-items: center;
-        gap: 10px;
-        background: linear-gradient(135deg, var(--brand), var(--brand-2));
-        color: #0b0f19;
-        font-weight: 700;
-        padding: 10px 16px;
-        border-radius: 12px;
-        box-shadow: var(--shadow);
-        border: 1px solid color-mix(in oklab, var(--brand) 65%, var(--brand-2));
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: var(--radius);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: none;
+        font-size: 14px;
       }
-      .btn.secondary {
-        background: transparent;
-        color: var(--text);
-        border: 1px solid color-mix(in oklab, var(--text) 16%, transparent);
-        box-shadow: none;
+
+      .btn-primary {
+        background: var(--text);
+        color: white;
       }
-      .btn:hover {
+
+      .btn-primary:hover {
+        background: #374151;
         transform: translateY(-1px);
       }
 
-      /* Hero */
+      .btn-secondary {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .btn-secondary:hover {
+        background: var(--bg-secondary);
+        transform: translateY(-1px);
+      }
+
+      /* Hero Section */
       .hero {
-        padding: 72px 24px 42px;
-        position: relative;
-        overflow: hidden;
+        padding: 80px 0 120px;
+        text-align: center;
       }
-      .hero .container {
-        display: grid;
-        gap: 14px;
-        justify-items: start;
-        text-align: left;
-      }
-      .badge {
+
+      .hero-badge {
         display: inline-flex;
-        gap: 10px;
         align-items: center;
-        border: 1px solid color-mix(in oklab, var(--text) 16%, transparent);
+        gap: 8px;
+        padding: 8px 16px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
         border-radius: 999px;
-        padding: 6px 10px;
-        font-size: 12.5px;
-        color: var(--muted);
-        background: color-mix(in oklab, var(--bg) 85%, transparent);
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 32px;
       }
-      .title {
-        font-size: clamp(40px, 8vw, 72px);
-        line-height: 1.02;
-        letter-spacing: -0.02em;
-        margin: 8px 0 8px;
+
+      .hero-title {
+        font-size: clamp(48px, 8vw, 96px);
         font-weight: 900;
+        line-height: 1;
+        margin-bottom: 16px;
+        color: var(--text);
       }
-      .gradient {
-        background: linear-gradient(180deg, #fff, #c9d5ff 55%, #9bb2ff);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
+
+      .hero-subtitle {
+        font-size: 24px;
+        color: var(--text-muted);
+        margin-bottom: 40px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
       }
-      .subtitle {
-        font-size: clamp(18px, 2.6vw, 22px);
-        color: var(--muted);
-        max-width: 68ch;
-      }
-      .cta {
+
+      .hero-cta {
         display: flex;
-        gap: 12px;
+        gap: 16px;
+        justify-content: center;
         flex-wrap: wrap;
-        margin-top: 14px;
       }
 
       /* Sections */
       section {
-        padding: 42px 24px;
-      }
-      .card {
-        background: color-mix(in oklab, var(--panel) 84%, transparent);
-        border: 1px solid color-mix(in oklab, var(--text) 10%, transparent);
-        border-radius: var(--radius);
-        padding: clamp(18px, 3.5vw, 30px);
-        box-shadow: var(--shadow);
-      }
-      .grid {
-        display: grid;
-        gap: 18px;
-      }
-      .grid.cols-3 {
-        grid-template-columns: repeat(1, 1fr);
-      }
-      @media (min-width: 840px) {
-        .grid.cols-3 {
-          grid-template-columns: repeat(3, 1fr);
-        }
+        padding: 80px 0;
       }
 
-      .h2 {
-        font-size: clamp(26px, 4vw, 36px);
-        margin: 0 0 12px;
-      }
-      .muted {
-        color: var(--muted);
-      }
-      .feature {
-        display: grid;
-        gap: 8px;
-        align-content: start;
-      }
-      .icon {
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        display: grid;
-        place-items: center;
-        background: color-mix(in oklab, var(--brand) 30%, transparent);
-        border: 1px solid color-mix(in oklab, var(--brand) 40%, transparent);
+      .section-header {
+        text-align: center;
+        margin-bottom: 64px;
       }
 
-      .ribbon {
-        display: inline-block;
-        padding: 6px 10px;
-        border-radius: 10px;
-        background: color-mix(in oklab, var(--success) 22%, transparent);
-        border: 1px solid color-mix(in oklab, var(--success) 38%, transparent);
-        color: #0b0f19;
+      .section-title {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 16px;
+        color: var(--text);
+      }
+
+      .section-subtitle {
+        font-size: 20px;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      /* Pitch Section */
+      .pitch-content {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 48px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+      }
+
+      .pitch-title {
+        font-size: 36px;
         font-weight: 700;
+        margin-bottom: 24px;
+        color: var(--text);
       }
 
-      .footer {
-        padding: 36px 24px 60px;
-        color: var(--muted);
-        text-align: center;
-      }
-      .tiny {
-        font-size: 12px;
+      .pitch-content p {
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        margin-bottom: 24px;
       }
 
-      /* Utilities */
-      .center {
+      .pitch-content p:last-child {
+        margin-bottom: 0;
+        font-weight: 600;
+      }
+
+      /* Features Grid */
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .feature-card {
+        background: white;
+        padding: 32px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .feature-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--bg-secondary);
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        font-size: 20px;
+      }
+
+      .feature-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text);
+      }
+
+      .feature-description {
+        color: var(--text-muted);
+        line-height: 1.6;
+      }
+
+      /* Demo Section */
+      .demo-card {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 48px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
         text-align: center;
       }
-      .right {
-        text-align: right;
+
+      .demo-header {
+        text-align: center;
+        margin-bottom: 24px;
       }
-      .mt-0 {
-        margin-top: 0;
+
+      .demo-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--text);
       }
-      .mt-2 {
-        margin-top: 8px;
+
+      .demo-badge {
+        background: var(--success-bg);
+        color: var(--success);
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 600;
+        border: 1px solid var(--success-border);
       }
-      .mt-4 {
-        margin-top: 16px;
+
+      .demo-description {
+        font-size: 18px;
+        color: var(--text-muted);
+        margin-bottom: 32px;
+        line-height: 1.6;
       }
-      .mt-6 {
-        margin-top: 24px;
+
+      .demo-cta {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
       }
-      .mt-8 {
-        margin-top: 32px;
+
+      /* Contact Section */
+      .contact-content {
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: center;
       }
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        border: 0;
+
+      .contact-title {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: var(--text);
+      }
+
+      .contact-description {
+        font-size: 18px;
+        color: var(--text-muted);
+        margin-bottom: 32px;
+      }
+
+      .contact-cta {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      /* Footer */
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 40px 0;
+        text-align: center;
+        color: var(--text-muted);
+        background: var(--bg-secondary);
+      }
+
+      .footer-text {
+        margin-bottom: 8px;
+      }
+
+      .footer-small {
+        font-size: 14px;
+        opacity: 0.8;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .nav-links {
+          gap: 16px;
+        }
+
+        .nav-links a {
+          font-size: 14px;
+        }
+
+        .hero {
+          padding: 60px 0 80px;
+        }
+
+        .hero-cta {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .pitch-content,
+        .demo-card {
+          padding: 32px 24px;
+        }
+
+        .demo-header {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .features-grid {
+          grid-template-columns: 1fr;
+        }
+
+        section {
+          padding: 60px 0;
+        }
       }
     </style>
   </head>
   <body>
     <header>
-      <div class="container nav">
-        <a href="#top" class="brand" aria-label="Tzelem home">
-          <span class="logo" aria-hidden="true">Ẕ</span>
-          <span>Tzelem</span>
-        </a>
-        <nav class="links" aria-label="Primary">
-          <a href="#pitch">Pitch</a>
-          <a href="#how">How it works</a>
-          <a href="#hackathon">Hackathon</a>
-          <a href="#contact">Contact</a>
-          <a
-            class="btn secondary"
-            href="https://github.com/cheesejaguar/tzelem"
-            target="_blank"
-            rel="noopener"
-            >GitHub</a
-          >
-          <a class="btn" href="#demo">Watch the demo</a>
+      <div class="container">
+        <nav class="nav">
+          <a href="#" class="brand">
+            <div class="logo">Z</div>
+            <span class="brand-text">Tzelem</span>
+          </a>
+          <div class="nav-links">
+            <a href="#pitch">Pitch</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="#hackathon">Hackathon</a>
+            <a href="#contact">Contact</a>
+            <a
+              href="https://github.com/cheesejaguar/tzelem"
+              target="_blank"
+              rel="noopener"
+              >GitHub</a
+            >
+            <a href="#demo" class="btn btn-primary">Watch demo</a>
+          </div>
         </nav>
       </div>
     </header>
 
-    <main id="top">
-      <!-- HERO -->
-      <section class="hero" aria-labelledby="hero-title">
+    <main>
+      <!-- Hero Section -->
+      <section class="hero">
         <div class="container">
-          <span class="badge" id="demo"
-            >YC Agents Hackathon • San Francisco • Live demo</span
-          >
-          <h1 class="title" id="hero-title">
-            <span class="gradient">Tzelem</span>
-          </h1>
-          <p class="subtitle">agents in your image, outcomes on your budget</p>
-          <div class="cta">
-            <a class="btn" href="#pitch" aria-label="Read the pitch"
-              >Read the pitch</a
-            >
-            <a
-              class="btn secondary"
-              href="mailto:hello@tzlm.io"
-              aria-label="Email us"
-              >Contact</a
-            >
+          <div class="hero-badge">
+            YC Agents Hackathon • San Francisco • Live demo
+          </div>
+          <h1 class="hero-title">Tzelem</h1>
+          <p class="hero-subtitle">
+            once voice command to build a team of agents
+          </p>
+          <div class="hero-cta">
+            <a href="#pitch" class="btn btn-primary">Read the pitch</a>
+            <a href="#contact" class="btn btn-secondary">Contact us</a>
           </div>
         </div>
       </section>
 
-      <!-- PITCH -->
-      <section id="pitch" aria-labelledby="pitch-title">
-        <div class="container grid">
-          <div class="card">
-            <h2 class="h2" id="pitch-title">The Pitch</h2>
-            <p class="mt-2">
-              Tzelem—inspired by the ancient Aramaic word for “image”—is a
-              dynamic multi-agent orchestration platform that builds AI teams in
-              your image to deliver real work with enterprise-grade control.
+      <!-- Pitch Section -->
+      <section id="pitch">
+        <div class="container">
+          <div class="pitch-content">
+            <h2 class="pitch-title">The pitch</h2>
+            <p>
+              Tzelem is a dynamic multi-agent orchestration platform that builds
+              AI teams in your image to deliver real work with enterprise-grade
+              control.
+            </p>
+            <p>
               Give Tzelem an objective and a budget; it assembles specialized
               agents, coordinates their workflows, and ships results with
               real-time observability, auditability, and strict spend
-              guardrails. Unlike single “copilot” tools, Tzelem scales from
+              guardrails. Unlike single "copilot" tools, Tzelem scales from
               quick tasks to complex, cross-functional projects and slots
               cleanly into modern SaaS stacks with customizable policies,
               permissions, and data boundaries.
             </p>
-            <p class="mt-4">
+            <p>
               For enterprises, Tzelem is production-ready and fully
-              customizable. For this hackathon, we’ll demo end-to-end execution:
+              customizable. For this hackathon, we'll demo end-to-end execution:
               define a goal, cap spend, and watch an agent organization plan,
-              collaborate, and deliver—while you steer like a CEO. With Tzelem,
-              you don’t just have a personal assistant—you operate like a
-              billion-dollar CEO with an on-demand staff that can do almost
-              anything, safely, observably, and within budget.
+              collaborate, and deliver, while you steer like a CEO.
             </p>
-            <p class="mt-4">
-              <strong
-                >Tzelem — agents in your image, outcomes on your budget.</strong
-              >
+            <p>
+              With Tzelem, you operate like a billion-dollar CEO with an
+              on-demand staff that can do almost anything, safely, observably,
+              and within budget.
             </p>
           </div>
         </div>
       </section>
 
-      <!-- HOW IT WORKS / FEATURES -->
-      <section id="how" aria-labelledby="how-title">
+      <!-- How it Works Section -->
+      <section id="how-it-works">
         <div class="container">
-          <h2 class="h2" id="how-title">How it works</h2>
-          <p class="muted mt-2">
-            Give Tzelem an objective and a budget. It assembles specialized
-            agents, orchestrates workflows, and delivers results with full
-            visibility and hard guardrails on spend.
-          </p>
-          <div class="grid cols-3 mt-6">
-            <div class="card feature">
-              <span class="icon" aria-hidden="true">⏱</span>
-              <strong>Real-time observability</strong>
-              <span class="muted"
-                >Every decision, step, and cost—visible as it happens.</span
-              >
+          <div class="section-header">
+            <h2 class="section-title">How it works</h2>
+            <p class="section-subtitle">
+              Give Tzelem an objective and a budget. It assembles specialized
+              agents, orchestrates workflows, and delivers results with full
+              visibility and hard guardrails on spend.
+            </p>
+          </div>
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">⏱</div>
+              <h3 class="feature-title">Real-time observability</h3>
+              <p class="feature-description">
+                Every decision, step, and cost—visible as it happens.
+              </p>
             </div>
-            <div class="card feature">
-              <span class="icon" aria-hidden="true">🧭</span>
-              <strong>Policy-driven control</strong>
-              <span class="muted"
-                >Customizable policies, permissions, and data boundaries.</span
-              >
+            <div class="feature-card">
+              <div class="feature-icon">🛡</div>
+              <h3 class="feature-title">Policy-driven control</h3>
+              <p class="feature-description">
+                Customizable policies, permissions, and data boundaries.
+              </p>
             </div>
-            <div class="card feature">
-              <span class="icon" aria-hidden="true">🧾</span>
-              <strong>Auditability</strong>
-              <span class="muted"
-                >Traceable actions and artifacts for compliance and trust.</span
-              >
+            <div class="feature-card">
+              <div class="feature-icon">📋</div>
+              <h3 class="feature-title">Auditability</h3>
+              <p class="feature-description">
+                Traceable actions and artifacts for compliance and trust.
+              </p>
             </div>
-            <div class="card feature">
-              <span class="icon" aria-hidden="true">💸</span>
-              <strong>Strict spend guardrails</strong>
-              <span class="muted"
-                >Cap budgets up front; agents stay within the limit—no
-                surprises.</span
-              >
+            <div class="feature-card">
+              <div class="feature-icon">💰</div>
+              <h3 class="feature-title">Strict spend guardrails</h3>
+              <p class="feature-description">
+                Cap budgets up front; agents stay within the limit—no surprises.
+              </p>
             </div>
-            <div class="card feature">
-              <span class="icon" aria-hidden="true">📈</span>
-              <strong>Scales with scope</strong>
-              <span class="muted"
-                >From quick tasks to complex, cross‑functional projects.</span
-              >
+            <div class="feature-card">
+              <div class="feature-icon">📈</div>
+              <h3 class="feature-title">Scales with scope</h3>
+              <p class="feature-description">
+                From quick tasks to complex, cross-functional projects.
+              </p>
             </div>
-            <div class="card feature">
-              <span class="icon" aria-hidden="true">🔌</span>
-              <strong>Fits your stack</strong>
-              <span class="muted"
-                >Modern SaaS integration with clean boundaries by design.</span
-              >
+            <div class="feature-card">
+              <div class="feature-icon">🔌</div>
+              <h3 class="feature-title">Fits your stack</h3>
+              <p class="feature-description">
+                Modern SaaS integration with clean boundaries by design.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- HACKATHON DEMO -->
-      <section id="hackathon" aria-labelledby="hack-title">
-        <div class="container grid">
-          <div class="card">
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 12px;
-                flex-wrap: wrap;
-              "
-            >
-              <h2 class="h2" id="hack-title">Hackathon Demo</h2>
-              <span class="ribbon">End‑to‑end execution</span>
+      <!-- Hackathon Demo Section -->
+      <section id="hackathon">
+        <div class="container">
+          <div class="demo-card">
+            <div class="demo-header">
+              <h2 class="demo-title">Hackathon demo</h2>
             </div>
-            <p class="mt-2">
+            <p class="demo-description">
               Define a goal, cap spend, and watch an agent organization plan,
               collaborate, and deliver—while you steer like a CEO. Live demo
               coming soon.
             </p>
-            <div class="cta mt-4">
-              <a class="btn" href="#demo" aria-label="Watch the demo"
-                >Watch the demo</a
-              >
+            <div class="demo-cta">
+              <a href="#demo" class="btn btn-primary">Watch the demo</a>
               <a
-                class="btn secondary"
                 href="https://github.com/cheesejaguar/tzelem"
                 target="_blank"
                 rel="noopener"
+                class="btn btn-secondary"
                 >Star on GitHub</a
               >
             </div>
@@ -486,40 +608,35 @@
         </div>
       </section>
 
-      <!-- CONTACT / FOLLOW -->
-      <section id="contact" aria-labelledby="contact-title">
-        <div class="container grid">
-          <div class="card">
-            <h2 class="h2" id="contact-title">Stay in the loop</h2>
-            <p class="muted">Drop us a note or follow along as we ship.</p>
-            <div class="cta mt-4">
-              <a
-                class="btn"
-                href="mailto:hello@tzlm.io?subject=Tzelem%20hackathon%20demo"
-                aria-label="Email Tzelem"
+      <!-- Contact Section -->
+      <section id="contact">
+        <div class="container">
+          <div class="contact-content">
+            <h2 class="contact-title">Stay in the loop</h2>
+            <p class="contact-description">
+              Drop us a note or follow along as we ship.
+            </p>
+            <div class="contact-cta">
+              <a href="mailto:hello@tzlm.io" class="btn btn-primary"
                 >Email us</a
               >
               <a
-                class="btn secondary"
-                href="https://x.com/tzlm_io"
+                href="https://x.com/tzelem_ai"
                 target="_blank"
                 rel="noopener"
-                aria-label="Follow on X/Twitter"
+                class="btn btn-secondary"
                 >Follow on X</a
               >
             </div>
-            <p class="tiny mt-6 muted">
-              Replace placeholder links (GitHub, X, image) before publishing.
-            </p>
           </div>
         </div>
       </section>
     </main>
 
-    <footer class="footer">
+    <footer>
       <div class="container">
-        <div>© <span id="yr"></span> Tzelem</div>
-        <div class="tiny mt-2">
+        <div class="footer-text">© <span id="year"></span> Tzelem</div>
+        <div class="footer-small">
           Built for a hackathon demo. This site uses no cookies and stores no
           personal data.
         </div>
@@ -527,20 +644,23 @@
     </footer>
 
     <script>
-      // Smooth scroll for internal anchors
-      document.addEventListener("click", (e) => {
-        const a = e.target.closest('a[href^="#"]');
-        if (!a) return;
-        const id = a.getAttribute("href").slice(1);
-        const el = document.getElementById(id);
-        if (el) {
+      // Set current year
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      // Smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
           e.preventDefault();
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
-          history.pushState(null, "", "#" + id);
-        }
+          const target = document.querySelector(this.getAttribute("href"));
+          if (target) {
+            target.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        });
       });
-      // Year in footer
-      document.getElementById("yr").textContent = new Date().getFullYear();
     </script>
   </body>
 </html>
+ㅍ

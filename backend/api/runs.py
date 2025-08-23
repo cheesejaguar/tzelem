@@ -67,9 +67,7 @@ async def start_run(request: RunStartRequest):
         )
 
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(
-                f"Starting run with flowId: {request.flowId} or flow: {request.flow}"
-            )
+            logger.debug(f"Starting run with flowId: {request.flowId} or flow: {request.flow}")
 
         return RunStartResponse(runId=run_id, voice=voice_info)
 
@@ -202,6 +200,4 @@ async def stream_run_events(run_id: str):
 
     except Exception as e:
         logger.exception(f"Failed to start event stream for run {run_id}")
-        raise HTTPException(
-            status_code=500, detail="Failed to start event stream"
-        ) from e
+        raise HTTPException(status_code=500, detail="Failed to start event stream") from e

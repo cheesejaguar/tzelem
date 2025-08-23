@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
 import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.flows import router as flows_router
+from api.mail import router as mail_router
 from api.runs import router as runs_router
 from api.voice import router as voice_router
 from core.config import settings
@@ -33,6 +35,7 @@ app.add_middleware(
 app.include_router(voice_router)
 app.include_router(flows_router)
 app.include_router(runs_router)
+app.include_router(mail_router)
 
 
 @app.get("/")

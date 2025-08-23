@@ -23,7 +23,7 @@ export function exportFlow(nodes: FlowNode[], edges: FlowEdge[]): FlowJSON {
     paradigm,
     secrets,
     voice: {
-      enabled: false, // Default disabled, user can enable
+      enabled: true, // Enable voice for workflow runs
       provider: "pipecat",
       roomTTL: 3600, // 1 hour default
     },

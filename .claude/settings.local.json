@@ -8,7 +8,11 @@
       "Bash(npm run build:*)",
       "Read(//var/folders/d1/15w4sdvs6klg494qt4_l53_h0000gn/T/TemporaryItems/NSIRD_screencaptureui_8bvWsR/**)",
       "Bash(npm run type-check:*)",
-      "Read(//var/folders/d1/15w4sdvs6klg494qt4_l53_h0000gn/T/TemporaryItems/NSIRD_screencaptureui_hdbrm4/**)"
+      "Read(//var/folders/d1/15w4sdvs6klg494qt4_l53_h0000gn/T/TemporaryItems/NSIRD_screencaptureui_hdbrm4/**)",
+      "Bash(git commit:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv run:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

@@ -17,6 +17,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\""
   },
   "dependencies": {
+    "@daily-co/daily-js": "^0.83.1",
     "@pipecat-ai/client-js": "^1.2.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -42,6 +43,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
+    "convex": "^1.26.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.541.0",
     "motion": "^12.23.12",
