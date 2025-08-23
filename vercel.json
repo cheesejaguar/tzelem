@@ -5,9 +5,13 @@
   "installCommand": "npm install && npm run install:frontend",
   "functions": {
     "api/index.py": {
+<<<<<<< HEAD
       "runtime": "python3.11",
       "maxDuration": 30,
       "memory": 1024
+=======
+      "maxDuration": 30
+>>>>>>> 6ddae9db5da6ec02d4341e98b36cf2e8d8852a83
     }
   },
   "rewrites": [
