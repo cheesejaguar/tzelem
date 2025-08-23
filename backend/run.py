@@ -3,6 +3,7 @@
 Startup script for the Tzelem Backend FastAPI server
 """
 import uvicorn
+
 from core.config import settings
 
 if __name__ == "__main__":
@@ -11,5 +12,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         reload=settings.debug,
-        log_level="debug" if settings.debug else "info"
+        log_level="debug" if settings.debug else "info",
     )

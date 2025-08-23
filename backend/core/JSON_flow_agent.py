@@ -13,9 +13,9 @@ import asyncio
 import json
 import logging
 import os
-from typing import Dict, Any, Optional, List, TypedDict
-from uuid import uuid4
 from pathlib import Path
+from typing import Any
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -30,24 +30,22 @@ print(f"[DEBUG] OPENAI_API_KEY loaded: {'Yes' if openai_key else 'No'}")
 if openai_key:
     print(f"[DEBUG] OPENAI_API_KEY preview: {openai_key[:10]}...")
 else:
-    print("[DEBUG] Available env vars starting with OPENAI:", [k for k in os.environ.keys() if k.startswith('OPENAI')])
+    print("[DEBUG] Available env vars starting with OPENAI:", [k for k in os.environ.keys() if k.startswith("OPENAI")])
 
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 from pipecat.services.openai.llm import OpenAILLMService
-from pipecat.services.openai.tts import OpenAITTSService
 from pipecat.services.openai.stt import OpenAISTTService
-from pipecat.transports.services.daily import DailyTransport, DailyParams
+from pipecat.services.openai.tts import OpenAITTSService
+from pipecat.transports.services.daily import DailyParams, DailyTransport
 from pipecat_flows import (
-    FlowsFunctionSchema,
     FlowArgs,
     FlowManager,
     FlowResult,
+    FlowsFunctionSchema,
     NodeConfig,
-    ContextStrategy,
-    ContextStrategyConfig
 )
 
 # Optional VAD analyzer - fallback to None if not available
@@ -68,18 +66,18 @@ DEFAULT_JSON_CONFIG = {
         {
             "type": "browser-agent",
             "prompt": "Search for the latest information about artificial intelligence developments",
-            "url": "https://www.example.com"
+            "url": "https://www.example.com",
         },
         {
             "type": "mail-agent",
-            "prompt": "Send a summary email about the AI research findings to the team"
+            "prompt": "Send a summary email about the AI research findings to the team",
         },
         {
             "type": "browser-agent",
             "prompt": "Verify the sources and gather additional details from academic papers",
-            "url": "https://scholar.google.com"
-        }
-    ]
+            "url": "https://scholar.google.com",
+        },
+    ],
 }
 
 # Type definitions for function results
@@ -99,8 +97,8 @@ class MailResult(FlowResult):
 class JSONFlowData:
     """Data storage for JSON flow configurations and agent information."""
     def __init__(self):
-        self.current_config: Dict[str, Any] = DEFAULT_JSON_CONFIG
-        self.sub_agents: List[Dict[str, Any]] = []
+        self.current_config: dict[str, Any] = DEFAULT_JSON_CONFIG
+        self.sub_agents: list[dict[str, Any]] = []
         self.paradigm: str = "Agentic"
 
 # Global data store
@@ -113,24 +111,24 @@ browser_function_schema = FlowsFunctionSchema(
     properties={
         "agent_id": {
             "type": "integer",
-            "description": "The identifier (index) of the browser agent to execute"
-        }
+            "description": "The identifier (index) of the browser agent to execute",
+        },
     },
     required=["agent_id"],
-    handler=None  # Will be set after function definition
+    handler=None,  # Will be set after function definition
 )
 
 mail_function_schema = FlowsFunctionSchema(
-    name="mail_function", 
+    name="mail_function",
     description="Execute a mail agent by its identifier",
     properties={
         "agent_id": {
             "type": "integer",
-            "description": "The identifier (index) of the mail agent to execute"
-        }
+            "description": "The identifier (index) of the mail agent to execute",
+        },
     },
     required=["agent_id"],
-    handler=None  # Will be set after function definition
+    handler=None,  # Will be set after function definition
 )
 
 continue_conversation_schema = FlowsFunctionSchema(
@@ -138,42 +136,42 @@ continue_conversation_schema = FlowsFunctionSchema(
     description="Once you have done all the user has asked for, but they haven't given indication that they would like to end the conversation, run this function to recieve user input",
     properties={},
     required=[],
-    handler=None  # Will be set after function definition
+    handler=None,  # Will be set after function definition
 )
 
 end_conversation_schema = FlowsFunctionSchema(
     name="end_conversation",
-    description="End the JSON flow session", 
+    description="End the JSON flow session",
     properties={},
     required=[],
-    handler=None  # Will be set after function definition
+    handler=None,  # Will be set after function definition
 )
 
-def convert_json_to_markdown(config: Dict[str, Any]) -> str:
+def convert_json_to_markdown(config: dict[str, Any]) -> str:
     """Convert JSON configuration to markdown format for the master node."""
-    markdown = f"# Flow Configuration\n\n"
+    markdown = "# Flow Configuration\n\n"
     markdown += f"**Paradigm**: {config.get('paradigm', 'Unknown')}\n\n"
-    
-    if 'subAgents' in config:
+
+    if "subAgents" in config:
         markdown += "## Available Sub-Agents\n\n"
-        for i, agent in enumerate(config['subAgents']):
+        for i, agent in enumerate(config["subAgents"]):
             markdown += f"### Agent {i} - {agent.get('type', 'Unknown Type')}\n"
             markdown += f"- **Identifier**: {i}\n"
             markdown += f"- **Type**: {agent.get('type', 'Unknown')}\n"
             markdown += f"- **Prompt**: {agent.get('prompt', 'No prompt specified')}\n"
-            if 'url' in agent:
+            if "url" in agent:
                 markdown += f"- **URL**: {agent['url']}\n"
             markdown += "\n"
-    
+
     return markdown
 
 # Function handlers for Agentic paradigm
 async def browser_function(
-    args: FlowArgs, flow_manager: FlowManager
+    args: FlowArgs, flow_manager: FlowManager,
 ) -> tuple[BrowserResult, NodeConfig]:
     """Execute browser agent task by identifier."""
     agent_id = args["agent_id"]
-    
+
     # Validate agent_id
     if agent_id < 0 or agent_id >= len(json_flow_data.sub_agents):
         logger.error(f"Invalid agent_id: {agent_id}")
@@ -182,57 +180,57 @@ async def browser_function(
             agent_type="browser-agent",
             prompt="Invalid agent ID",
             url="",
-            status="error"
+            status="error",
         )
 
         return result, None
-    
+
     agent = json_flow_data.sub_agents[agent_id]
-    
+
     # Validate agent type
-    if agent.get('type') != 'browser-agent':
+    if agent.get("type") != "browser-agent":
         logger.error(f"Agent {agent_id} is not a browser-agent, it's a {agent.get('type')}")
         result = BrowserResult(
             agent_id=agent_id,
-            agent_type=agent.get('type', 'unknown'),
-            prompt=agent.get('prompt', ''),
-            url=agent.get('url', ''),
-            status="error"
+            agent_type=agent.get("type", "unknown"),
+            prompt=agent.get("prompt", ""),
+            url=agent.get("url", ""),
+            status="error",
         )
         return result, None
-    
+
     # Log the agent being executed
     logger.info(f"Executing Browser Agent {agent_id}")
     logger.info(f"Agent details: {json.dumps(agent, indent=2)}")
-    
+
     result = BrowserResult(
         agent_id=agent_id,
         agent_type="browser-agent",
-        prompt=agent.get('prompt', ''),
-        url=agent.get('url', ''),
-        status="completed"
+        prompt=agent.get("prompt", ""),
+        url=agent.get("url", ""),
+        status="completed",
     )
-    
+
     # Store execution result in flow state
     flow_manager.state[f"browser_agent_{agent_id}_result"] = {
         "executed": True,
         "agent": agent,
-        "timestamp": asyncio.get_event_loop().time()
+        "timestamp": asyncio.get_event_loop().time(),
     }
-    
+
     return result, None
 
 async def continue_function(
-    args: FlowArgs, flow_manager: FlowManager
+    args: FlowArgs, flow_manager: FlowManager,
 ) -> tuple[MailResult, NodeConfig]:
     return None, create_master_node()
 
 async def mail_function(
-    args: FlowArgs, flow_manager: FlowManager
+    args: FlowArgs, flow_manager: FlowManager,
 ) -> tuple[MailResult, NodeConfig]:
     """Execute mail agent task by identifier."""
     agent_id = args["agent_id"]
-    
+
     # Validate agent_id
     if agent_id < 0 or agent_id >= len(json_flow_data.sub_agents):
         logger.error(f"Invalid agent_id: {agent_id}")
@@ -240,41 +238,41 @@ async def mail_function(
             agent_id=agent_id,
             agent_type="mail-agent",
             prompt="Invalid agent ID",
-            status="error"
+            status="error",
         )
         return result, None
-    
+
     agent = json_flow_data.sub_agents[agent_id]
-    
+
     # Validate agent type
-    if agent.get('type') != 'mail-agent':
+    if agent.get("type") != "mail-agent":
         logger.error(f"Agent {agent_id} is not a mail-agent, it's a {agent.get('type')}")
         result = MailResult(
             agent_id=agent_id,
-            agent_type=agent.get('type', 'unknown'),
-            prompt=agent.get('prompt', ''),
-            status="error"
+            agent_type=agent.get("type", "unknown"),
+            prompt=agent.get("prompt", ""),
+            status="error",
         )
         return result, None
-    
+
     # Log the agent being executed
     logger.info(f"Executing Mail Agent {agent_id}")
     logger.info(f"Agent details: {json.dumps(agent, indent=2)}")
-    
+
     result = MailResult(
         agent_id=agent_id,
         agent_type="mail-agent",
-        prompt=agent.get('prompt', ''),
-        status="completed"
+        prompt=agent.get("prompt", ""),
+        status="completed",
     )
-    
+
     # Store execution result in flow state
     flow_manager.state[f"mail_agent_{agent_id}_result"] = {
         "executed": True,
         "agent": agent,
-        "timestamp": asyncio.get_event_loop().time()
+        "timestamp": asyncio.get_event_loop().time(),
     }
-    
+
     next_node = create_master_node()
     return result, next_node
 
@@ -287,7 +285,7 @@ async def end_conversation(args: FlowArgs) -> tuple[FlowResult, NodeConfig]:
 
 # Set handlers for function schemas after function definitions
 browser_function_schema.handler = browser_function
-mail_function_schema.handler = mail_function  
+mail_function_schema.handler = mail_function
 continue_conversation_schema.handler = continue_function
 end_conversation_schema.handler = end_conversation
 
@@ -305,7 +303,7 @@ def create_initial_node() -> NodeConfig:
                     "Based on the paradigm, you will create appropriate flow structures. "
                     "This is a voice conversation, so avoid special characters and emojis."
                 ),
-            }
+            },
         ],
         "task_messages": [
             {
@@ -315,30 +313,29 @@ def create_initial_node() -> NodeConfig:
                     f"The configuration has been loaded and you will proceed to the appropriate handler. "
                     "Announce that you're initializing the JSON flow agent and describe the configuration."
                 ),
-            }
+            },
         ],
         "functions": [],
         "respond_immediately": True,
         "post_actions": [
             {
                 "type": "goto_node",
-                "node": create_paradigm_router_node()
-            }
-        ]
+                "node": create_paradigm_router_node(),
+            },
+        ],
     }
 
 def create_paradigm_router_node() -> NodeConfig:
     """Route to appropriate paradigm handler."""
     if json_flow_data.paradigm.lower() == "agentic":
         return create_master_node()
-    else:
-        # For Sequential or other paradigms, create a basic end node for now
-        return create_end_node()
+    # For Sequential or other paradigms, create a basic end node for now
+    return create_end_node()
 
 def create_master_node() -> NodeConfig:
     """Create the master node for Agentic paradigm."""
     config_markdown = convert_json_to_markdown(json_flow_data.current_config)
-    
+
     return {
         "name": "master_node",
         "role_messages": [
@@ -351,7 +348,7 @@ def create_master_node() -> NodeConfig:
                     "Make decisions about which agents to call and when based on the conversation context."
                     "Whenever the user indicates intent to end the conversation, call the end_conversation_schema"
                 ),
-            }
+            },
         ],
         "task_messages": [
             {
@@ -362,7 +359,7 @@ def create_master_node() -> NodeConfig:
                     "which agents to execute. Use the Browser function for browser-agents and Mail function "
                     "for mail-agents. Ask the user what they would like to accomplish."
                 ),
-            }
+            },
         ],
         "functions": [
             browser_function_schema,
@@ -383,54 +380,54 @@ def create_end_node() -> NodeConfig:
                     "Summarize what was accomplished during this session. "
                     "End the conversation warmly."
                 ),
-            }
+            },
         ],
         "post_actions": [{"type": "end_conversation"}],
     }
 
 class JSONFlowAgent:
     """Main JSON flow agent class that processes dynamic JSON configurations."""
-    
-    def __init__(self, json_config: Optional[Dict[str, Any]] = None):
-        self.flow_manager: Optional[FlowManager] = None
-        self.task: Optional[PipelineTask] = None
+
+    def __init__(self, json_config: dict[str, Any] | None = None):
+        self.flow_manager: FlowManager | None = None
+        self.task: PipelineTask | None = None
         self.load_configuration(json_config or DEFAULT_JSON_CONFIG)
-        
-    def load_configuration(self, config: Dict[str, Any]) -> None:
+
+    def load_configuration(self, config: dict[str, Any]) -> None:
         """Load and validate JSON configuration."""
         logger.info(f"Loading JSON configuration: {json.dumps(config, indent=2)}")
-        
+
         # Validate required fields
-        if 'paradigm' not in config:
+        if "paradigm" not in config:
             raise ValueError("JSON configuration must include 'paradigm' field")
-        
+
         json_flow_data.current_config = config
-        json_flow_data.paradigm = config['paradigm']
-        
+        json_flow_data.paradigm = config["paradigm"]
+
         # Load sub-agents if present
-        if 'subAgents' in config:
-            json_flow_data.sub_agents = config['subAgents']
+        if "subAgents" in config:
+            json_flow_data.sub_agents = config["subAgents"]
             logger.info(f"Loaded {len(json_flow_data.sub_agents)} sub-agents")
-            
+
             # Validate sub-agents
             for i, agent in enumerate(json_flow_data.sub_agents):
-                if 'type' not in agent:
+                if "type" not in agent:
                     raise ValueError(f"Sub-agent {i} missing 'type' field")
-                if agent['type'] not in ['browser-agent', 'mail-agent']:
+                if agent["type"] not in ["browser-agent", "mail-agent"]:
                     raise ValueError(f"Sub-agent {i} has invalid type: {agent['type']}")
-                if 'prompt' not in agent:
+                if "prompt" not in agent:
                     raise ValueError(f"Sub-agent {i} missing 'prompt' field")
-                if agent['type'] == 'browser-agent' and 'url' not in agent:
+                if agent["type"] == "browser-agent" and "url" not in agent:
                     raise ValueError(f"Browser agent {i} missing 'url' field")
-        
+
         logger.info(f"Configuration validated successfully. Paradigm: {json_flow_data.paradigm}")
-    
+
     async def create_flow_pipeline(
         self,
         room_url: str,
         token: str,
-        user_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+        user_id: str | None = None,
+    ) -> dict[str, Any]:
         """Create the JSON flow pipeline."""
         try:
             # Configure Daily transport
@@ -438,33 +435,33 @@ class JSONFlowAgent:
                 audio_in_enabled=True,
                 audio_out_enabled=True,
             )
-            
+
             # Add VAD analyzer if available
             if VAD_AVAILABLE and SileroVADAnalyzer:
                 daily_params.vad_analyzer = SileroVADAnalyzer()
                 logger.debug("Using SileroVADAnalyzer for voice activity detection")
             else:
                 logger.info("Running without VAD analyzer")
-            
+
             transport = DailyTransport(
                 room_url,
                 token,
                 "JSON Flow Agent",
-                daily_params
+                daily_params,
             )
-            
+
             # Configure AI services
             llm = OpenAILLMService(
-                model="gpt-4o"
+                model="gpt-4o",
             )
-            
+
             stt = OpenAISTTService()
             tts = OpenAITTSService(voice="nova")
-            
+
             # Create context aggregator
             context = OpenAILLMContext()
             context_aggregator = llm.create_context_aggregator(context)
-            
+
             # Build pipeline
             pipeline_components = [
                 transport.input(),
@@ -475,22 +472,22 @@ class JSONFlowAgent:
                 transport.output(),
                 context_aggregator.assistant(),
             ]
-            
+
             pipeline = Pipeline(pipeline_components)
-            
+
             # Create pipeline task
             self.task = PipelineTask(
                 pipeline,
-                params=PipelineParams(allow_interruptions=True)
+                params=PipelineParams(allow_interruptions=True),
             )
-            
+
             # Initialize flow manager
             self.flow_manager = FlowManager(
                 task=self.task,
                 llm=llm,
                 context_aggregator=context_aggregator,
             )
-            
+
             # Set up transport event handler
             @transport.event_handler("on_first_participant_joined")
             async def on_first_participant_joined(transport, participant):
@@ -500,7 +497,7 @@ class JSONFlowAgent:
                     await self.flow_manager.initialize(create_master_node())
                 else:
                     print("Wrong")
-            
+
             return {
                 "room_url": room_url,
                 "status": "ready",
@@ -509,30 +506,30 @@ class JSONFlowAgent:
                 "task": self.task,
                 "configuration": json_flow_data.current_config,
                 "paradigm": json_flow_data.paradigm,
-                "sub_agents_count": len(json_flow_data.sub_agents)
+                "sub_agents_count": len(json_flow_data.sub_agents),
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to create JSON flow pipeline: {e}")
             raise
-    
+
     async def run_flow(self) -> None:
         """Run the JSON flow."""
         if not self.task:
             raise RuntimeError("Task not initialized. Call create_flow_pipeline first.")
-        
+
         runner = PipelineRunner()
         await runner.run(self.task)
-    
-    def get_flow_data(self) -> Dict[str, Any]:
+
+    def get_flow_data(self) -> dict[str, Any]:
         """Get current flow configuration and state."""
         return {
             "configuration": json_flow_data.current_config,
             "paradigm": json_flow_data.paradigm,
             "sub_agents": json_flow_data.sub_agents,
-            "sub_agents_count": len(json_flow_data.sub_agents)
+            "sub_agents_count": len(json_flow_data.sub_agents),
         }
-    
+
     async def cleanup(self) -> None:
         """Clean up flow resources."""
         if self.task and not self.task.done():
@@ -541,7 +538,7 @@ class JSONFlowAgent:
                 await self.task
             except asyncio.CancelledError:
                 pass
-        
+
         # Reset configuration data
         json_flow_data.current_config = DEFAULT_JSON_CONFIG
         json_flow_data.sub_agents.clear()

@@ -1,12 +1,13 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks
-from pydantic import BaseModel
-import logging
 import asyncio
-from services.daily_service import create_room
-from core.config import settings
-from core.productivity_flow_agent import productivity_flow_agent
-from core.JSON_flow_agent import JSONFlowAgent
+import logging
 
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+from pydantic import BaseModel
+
+from core.config import settings
+from core.JSON_flow_agent import JSONFlowAgent
+from core.productivity_flow_agent import productivity_flow_agent
+from services.daily_service import create_room
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
 
@@ -51,14 +52,14 @@ async def create_voice_room():
     """
     try:
         room_url, token = await create_room()
-        
+
         if settings.debug:
             print(f"[DEBUG] Room created: {room_url}")
-        
+
         return RoomResponse(room=room_url, joinToken=token)
-    
+
     except Exception as e:
-        logger.error(f"Failed to create room: {str(e)}")
+        logger.error(f"Failed to create room: {e!s}")
         raise HTTPException(status_code=500, detail="Failed to create room")
 
 
@@ -67,32 +68,31 @@ async def run_json_flow_agent(room_url: str, token: str, json_config: dict = Non
     try:
         # Create a new instance with the provided config
         agent = JSONFlowAgent(json_config)
-        
+
         # Create and configure the flow pipeline
         flow_info = await agent.create_flow_pipeline(
             room_url=room_url,
-            token=token
+            token=token,
         )
-        
+
         # Store the agent info
         active_json_agents[room_url] = {
             "agent": agent,
             "status": "running",
             "paradigm": flow_info["paradigm"],
             "sub_agents_count": flow_info["sub_agents_count"],
-            "configuration": flow_info["configuration"]
+            "configuration": flow_info["configuration"],
         }
-        
+
         logger.info(f"Starting JSON flow agent for room: {room_url}")
         logger.info(f"Agent paradigm: {flow_info['paradigm']}")
-        
+
         # Run the agent flow
         await agent.run_flow()
-        
+
     except asyncio.CancelledError:
         logger.info(f"JSON flow agent cancelled for room: {room_url}")
-        if room_url in active_json_agents:
-            del active_json_agents[room_url]
+        active_json_agents.pop(room_url, None)
     except Exception as e:
         logger.error(f"Error running JSON flow agent for room {room_url}: {e}")
         if room_url in active_json_agents:
@@ -103,29 +103,28 @@ async def run_productivity_agent(room_url: str, token: str):
     """Background task to run the productivity agent."""
     try:
         agent = productivity_flow_agent
-        
+
         # Create and configure the flow pipeline
         flow_info = await agent.create_flow_pipeline(
             room_url=room_url,
-            token=token
+            token=token,
         )
-        
+
         # Store the agent info
         active_agents[room_url] = {
             "agent": agent,
             "status": "running",
-            "features": flow_info["features"]
+            "features": flow_info["features"],
         }
-        
+
         logger.info(f"Starting productivity agent for room: {room_url}")
-        
+
         # Run the agent flow
         await agent.run_flow()
-        
+
     except asyncio.CancelledError:
         logger.info(f"Productivity agent cancelled for room: {room_url}")
-        if room_url in active_agents:
-            del active_agents[room_url]
+        active_agents.pop(room_url, None)
     except Exception as e:
         logger.error(f"Error running productivity agent for room {room_url}: {e}")
         if room_url in active_agents:
@@ -137,29 +136,28 @@ async def run_productivity_agent(room_url: str, token: str):
     """Background task to run the productivity agent."""
     try:
         agent = productivity_flow_agent
-        
+
         # Create and configure the flow pipeline
         flow_info = await agent.create_flow_pipeline(
             room_url=room_url,
-            token=token
+            token=token,
         )
-        
+
         # Store the agent info
         active_agents[room_url] = {
             "agent": agent,
             "status": "running",
-            "features": flow_info["features"]
+            "features": flow_info["features"],
         }
-        
+
         logger.info(f"Starting productivity agent for room: {room_url}")
-        
+
         # Run the agent flow
         await agent.run_flow()
-        
+
     except asyncio.CancelledError:
         logger.info(f"Productivity agent cancelled for room: {room_url}")
-        if room_url in active_agents:
-            del active_agents[room_url]
+        active_agents.pop(room_url, None)
     except Exception as e:
         logger.error(f"Error running productivity agent for room {room_url}: {e}")
         if room_url in active_agents:
@@ -177,34 +175,34 @@ async def create_productivity_room(background_tasks: BackgroundTasks):
     """
     try:
         room_url, token = await create_room()
-        
+
         # Start the productivity agent in the background
         background_tasks.add_task(run_productivity_agent, room_url, token)
-        
+
         if settings.debug:
             print(f"[DEBUG] Productivity room created: {room_url}")
-        
+
         return ProductivityRoomResponse(
             room=room_url,
             joinToken=token,
             agentStatus="starting",
             features=[
                 "Task Management",
-                "Schedule Planning", 
+                "Schedule Planning",
                 "Goal Setting",
-                "Productivity Coaching"
-            ]
+                "Productivity Coaching",
+            ],
         )
-    
+
     except Exception as e:
-        logger.error(f"Failed to create productivity room: {str(e)}")
+        logger.error(f"Failed to create productivity room: {e!s}")
         raise HTTPException(status_code=500, detail="Failed to create productivity room")
 
 
 @router.post("/json-flow-rooms", response_model=JSONFlowRoomResponse)
 async def create_json_flow_room(
     request: JSONFlowRoomRequest,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
 ):
     """
     Create a new Daily WebRTC room with JSON flow agent.
@@ -217,38 +215,38 @@ async def create_json_flow_room(
     """
     try:
         room_url, token = await create_room()
-        
+
         # Start the JSON flow agent in the background
         background_tasks.add_task(
-            run_json_flow_agent, 
-            room_url, 
-            token, 
-            request.json_config
+            run_json_flow_agent,
+            room_url,
+            token,
+            request.json_config,
         )
-        
+
         if settings.debug:
             print(f"[DEBUG] JSON flow room created: {room_url}")
             if request.json_config:
                 print(f"[DEBUG] Using custom config: {request.json_config}")
-        
+
         # Default values for response (will be updated when agent starts)
         paradigm = "Agentic"
         sub_agents_count = 0
-        
+
         if request.json_config:
             paradigm = request.json_config.get("paradigm", "Agentic")
             sub_agents_count = len(request.json_config.get("subAgents", []))
-        
+
         return JSONFlowRoomResponse(
             room=room_url,
             joinToken=token,
             agentStatus="starting",
             paradigm=paradigm,
-            subAgentsCount=sub_agents_count
+            subAgentsCount=sub_agents_count,
         )
-    
+
     except Exception as e:
-        logger.error(f"Failed to create JSON flow room: {str(e)}")
+        logger.error(f"Failed to create JSON flow room: {e!s}")
         raise HTTPException(status_code=500, detail="Failed to create JSON flow room")
 
 
@@ -259,32 +257,32 @@ async def get_room_status(room_url: str):
         # Decode the room URL (it might be URL encoded)
         import urllib.parse
         decoded_room_url = urllib.parse.unquote(room_url)
-        
+
         # Check for productivity agent first
         if decoded_room_url in active_agents:
             agent_info = active_agents[decoded_room_url]
             agent = agent_info["agent"]
-            
+
             # Get productivity data from the agent
             user_data = agent.get_user_data()
-            
+
             return {
                 "room_url": decoded_room_url,
                 "agent_type": "productivity",
                 "agent_status": agent_info["status"],
                 "features": agent_info["features"],
                 "productivity_data": user_data,
-                "message": "Productivity assistant is active and ready to help!"
+                "message": "Productivity assistant is active and ready to help!",
             }
-        
+
         # Check for JSON flow agent
-        elif decoded_room_url in active_json_agents:
+        if decoded_room_url in active_json_agents:
             agent_info = active_json_agents[decoded_room_url]
             agent = agent_info["agent"]
-            
+
             # Get flow data from the agent
             flow_data = agent.get_flow_data()
-            
+
             return {
                 "room_url": decoded_room_url,
                 "agent_type": "json_flow",
@@ -293,18 +291,17 @@ async def get_room_status(room_url: str):
                 "sub_agents_count": agent_info["sub_agents_count"],
                 "configuration": agent_info["configuration"],
                 "flow_data": flow_data,
-                "message": "JSON flow agent is active and ready to help!"
+                "message": "JSON flow agent is active and ready to help!",
             }
-        
-        else:
-            return {
-                "room_url": decoded_room_url,
-                "agent_status": "not_found",
-                "message": "No active agent found for this room"
-            }
-            
+
+        return {
+            "room_url": decoded_room_url,
+            "agent_status": "not_found",
+            "message": "No active agent found for this room",
+        }
+
     except Exception as e:
-        logger.error(f"Failed to get room status: {str(e)}")
+        logger.error(f"Failed to get room status: {e!s}")
         raise HTTPException(status_code=500, detail="Failed to get room status")
 
 
@@ -314,47 +311,46 @@ async def cleanup_room(room_url: str):
     try:
         import urllib.parse
         decoded_room_url = urllib.parse.unquote(room_url)
-        
+
         # Check for productivity agent
         if decoded_room_url in active_agents:
             agent_info = active_agents[decoded_room_url]
             agent = agent_info["agent"]
-            
+
             # Clean up the agent
             await agent.cleanup()
-            
+
             # Remove from active agents
             del active_agents[decoded_room_url]
-            
+
             return {
                 "message": f"Productivity room {decoded_room_url} cleaned up successfully",
                 "agent_type": "productivity",
-                "status": "cleaned_up"
+                "status": "cleaned_up",
             }
-        
+
         # Check for JSON flow agent
-        elif decoded_room_url in active_json_agents:
+        if decoded_room_url in active_json_agents:
             agent_info = active_json_agents[decoded_room_url]
             agent = agent_info["agent"]
-            
+
             # Clean up the agent
             await agent.cleanup()
-            
+
             # Remove from active agents
             del active_json_agents[decoded_room_url]
-            
+
             return {
                 "message": f"JSON flow room {decoded_room_url} cleaned up successfully",
                 "agent_type": "json_flow",
-                "status": "cleaned_up"
+                "status": "cleaned_up",
             }
-        
-        else:
-            return {
-                "message": f"Room {decoded_room_url} not found or already cleaned up",
-                "status": "not_found"
-            }
-            
+
+        return {
+            "message": f"Room {decoded_room_url} not found or already cleaned up",
+            "status": "not_found",
+        }
+
     except Exception as e:
-        logger.error(f"Failed to cleanup room: {str(e)}")
+        logger.error(f"Failed to cleanup room: {e!s}")
         raise HTTPException(status_code=500, detail="Failed to cleanup room")
