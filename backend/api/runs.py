@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -14,12 +14,12 @@ logger = logging.getLogger(__name__)
 
 class VoiceInfo(BaseModel):
     room: str
-    token: Optional[str] = None
+    token: str | None = None
 
 
 class RunStartRequest(BaseModel):
-    flowId: Optional[str] = None
-    flow: Optional[Dict[str, Any]] = None
+    flowId: str | None = None
+    flow: dict[str, Any] | None = None
 
 
 class RunStartResponse(BaseModel):
@@ -30,11 +30,11 @@ class RunStartResponse(BaseModel):
 class RunStatus(BaseModel):
     id: str
     status: str  # "pending", "running", "completed", "failed"
-    flowId: Optional[str] = None
-    startedAt: Optional[str] = None
-    completedAt: Optional[str] = None
-    currentNode: Optional[str] = None
-    progress: Optional[float] = None  # 0.0 to 1.0
+    flowId: str | None = None
+    startedAt: str | None = None
+    completedAt: str | None = None
+    currentNode: str | None = None
+    progress: float | None = None  # 0.0 to 1.0
 
 
 @router.post("", response_model=RunStartResponse)
@@ -52,25 +52,25 @@ async def start_run(request: RunStartRequest):
         # Validate that either flowId or flow is provided
         if not request.flowId and not request.flow:
             raise HTTPException(
-                status_code=400, 
-                detail="Either flowId or flow JSON must be provided"
+                status_code=400,
+                detail="Either flowId or flow JSON must be provided",
             )
-        
+
         # TODO: Implement actual run initialization logic
         # For now, return stubbed response
         run_id = "run_789012"  # Placeholder ID
-        
+
         # Stubbed voice room info
         voice_info = VoiceInfo(
             room="https://daily.co/room-abc123",
-            token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."  # Placeholder token
+            token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",  # Placeholder token
         )
-        
+
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(f"Starting run with flowId: {request.flowId} or flow: {request.flow}")
-        
+
         return RunStartResponse(runId=run_id, voice=voice_info)
-    
+
     except HTTPException:
         raise
     except Exception as e:
@@ -100,11 +100,10 @@ async def get_run_status(run_id: str):
                 startedAt="2025-08-23T10:00:00Z",
                 completedAt=None,
                 currentNode="agent_node_1",
-                progress=0.45
+                progress=0.45,
             )
-        else:
-            raise HTTPException(status_code=404, detail=f"Run {run_id} not found")
-    
+        raise HTTPException(status_code=404, detail=f"Run {run_id} not found")
+
     except HTTPException:
         raise
     except Exception as e:
@@ -115,10 +114,10 @@ async def get_run_status(run_id: str):
 async def generate_sse_events(run_id: str):
     """
     Generate Server-Sent Events for a run.
-    
+
     Args:
         run_id: The ID of the run to stream events for
-    
+
     Yields:
         SSE formatted event strings
     """
@@ -133,22 +132,22 @@ async def generate_sse_events(run_id: str):
             {"type": "node_started", "nodeId": "agent_node_2", "timestamp": "2025-08-23T10:00:11Z"},
             {"type": "progress", "progress": 0.50, "timestamp": "2025-08-23T10:00:15Z"},
         ]
-        
+
         for event in events:
             # Format as SSE
             event_data = json.dumps(event)
             yield f"data: {event_data}\n\n"
             await asyncio.sleep(1)  # Simulate real-time events
-        
+
         # Send final completion event
         completion_event = {
             "type": "run_completed",
             "runId": run_id,
             "status": "completed",
-            "timestamp": "2025-08-23T10:00:30Z"
+            "timestamp": "2025-08-23T10:00:30Z",
         }
         yield f"data: {json.dumps(completion_event)}\n\n"
-        
+
     except Exception as e:
         logger.exception(f"Error streaming events for run {run_id}")
         error_event = {"type": "error", "message": str(e)}
@@ -169,10 +168,10 @@ async def stream_run_events(run_id: str):
     try:
         # TODO: Validate that the run exists
         # For now, accept any run_id for stubbing purposes
-        
+
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(f"Starting SSE stream for run {run_id}")
-        
+
         return StreamingResponse(
             generate_sse_events(run_id),
             media_type="text/event-stream",
@@ -180,9 +179,10 @@ async def stream_run_events(run_id: str):
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
                 "X-Accel-Buffering": "no",  # Disable Nginx buffering
-            }
+            },
         )
-    
+
     except Exception as e:
         logger.exception(f"Failed to start event stream for run {run_id}")
         raise HTTPException(status_code=500, detail="Failed to start event stream") from e
+

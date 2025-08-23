@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class FlowCreateRequest(BaseModel):
-    flow: Dict[str, Any]
+    flow: dict[str, Any]
 
 
 class FlowCreateResponse(BaseModel):
@@ -19,7 +19,7 @@ class FlowCreateResponse(BaseModel):
 
 class FlowResponse(BaseModel):
     id: str
-    flow: Dict[str, Any]
+    flow: dict[str, Any]
 
 
 @router.post("", response_model=FlowCreateResponse)
@@ -37,12 +37,12 @@ async def create_or_update_flow(request: FlowCreateRequest):
         # TODO: Implement flow storage logic
         # For now, return a stubbed response
         flow_id = "flow_123456"  # Placeholder ID
-        
+
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(f"Storing flow: {request.flow}")
-        
+
         return FlowCreateResponse(flowId=flow_id)
-    
+
     except Exception as e:
         logger.exception("Failed to store flow")
         raise HTTPException(status_code=500, detail="Failed to store flow") from e
@@ -68,15 +68,15 @@ async def get_flow(flow_id: str):
                 "edges": [],
                 "metadata": {
                     "name": "Sample Flow",
-                    "version": "1.0.0"
-                }
+                    "version": "1.0.0",
+                },
             }
             return FlowResponse(id=flow_id, flow=sample_flow)
-        else:
-            raise HTTPException(status_code=404, detail=f"Flow {flow_id} not found")
-    
+        raise HTTPException(status_code=404, detail=f"Flow {flow_id} not found")
+
     except HTTPException:
         raise
     except Exception as e:
         logger.exception(f"Failed to retrieve flow {flow_id}")
         raise HTTPException(status_code=500, detail="Failed to retrieve flow") from e
+
