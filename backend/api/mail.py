@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -72,35 +73,43 @@ async def send_mail(mail_data: MailRequest) -> MailResponse:
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(f"Sending mail to: {mail_data.to}, subject: {mail_data.subject}")
 
-        # Prepare email data for AgentMail
-        email_data = {
-            "to": mail_data.to,
-            "subject": mail_data.subject,
-        }
-
-        # Add from_name if provided
-        if mail_data.from_name:
-            email_data["from_name"] = mail_data.from_name
-
-        # Add content (prefer HTML if both provided)
-        if mail_data.html:
-            email_data["html"] = mail_data.html
-        elif mail_data.text:
-            email_data["text"] = mail_data.text
-        else:
+        # Check if content is provided
+        if not mail_data.html and not mail_data.text:
             raise HTTPException(
                 status_code=400, detail="Either html or text content must be provided"
             )
 
+        # Get or create an inbox for sending
+        # For AgentMail, we need the inbox_id (which is the email address)
+        inbox_id = os.getenv("AGENTMAIL_INBOX_ID")
+        if not inbox_id:
+            # Create a default inbox if not configured
+            try:
+                inbox = client.inboxes.create(display_name=mail_data.from_name or "Tzelem")
+                # The inbox_id is the email address
+                inbox_id = inbox.inbox_id
+                logger.info(f"Created AgentMail inbox: {inbox_id}")
+
+                # Wait a moment for the inbox to be available
+                time.sleep(2)
+            except Exception as e:
+                logger.error(f"Failed to create inbox: {e}")
+                raise HTTPException(status_code=500, detail=f"Failed to create mail inbox: {e!s}")
+
         # Send email via AgentMail
-        # Note: Using the inboxes.create method as shown in the documentation
-        response = client.inboxes.create(**email_data)
+        response = client.inboxes.messages.send(
+            inbox_id=inbox_id,  # This is the email address
+            to=mail_data.to,
+            subject=mail_data.subject,
+            html=mail_data.html,
+            text=mail_data.text,
+        )
 
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(f"Mail sent successfully: {response}")
 
         return MailResponse(
-            messageId=getattr(response, "id", None),
+            messageId=getattr(response, "message_id", None),
             status="queued",
             message="Email sent successfully",
         )

@@ -23,11 +23,14 @@ class TestMailAPI:
     @pytest.mark.asyncio
     async def test_send_mail_success(self):
         """Test successful email sending."""
+        mock_inbox = MagicMock()
+        mock_inbox.inbox_id = "test@agentmail.to"
         mock_response = MagicMock()
-        mock_response.id = "msg-12345"
+        mock_response.message_id = "msg-12345"
 
         with patch("api.mail.client") as mock_client:
-            mock_client.inboxes.create.return_value = mock_response
+            mock_client.inboxes.create.return_value = mock_inbox
+            mock_client.inboxes.messages.send.return_value = mock_response
 
             async with AsyncClient(
                 transport=ASGITransport(app=app),
@@ -48,21 +51,26 @@ class TestMailAPI:
             assert data["messageId"] == "msg-12345"
             assert data["status"] == "queued"
             assert data["message"] == "Email sent successfully"
-            mock_client.inboxes.create.assert_called_once_with(
+            mock_client.inboxes.create.assert_called_once_with(display_name="Test Sender")
+            mock_client.inboxes.messages.send.assert_called_once_with(
+                inbox_id="test@agentmail.to",
                 to="test@example.com",
                 subject="Test Email",
                 html="<p>Test content</p>",
-                from_name="Test Sender",
+                text=None,
             )
 
     @pytest.mark.asyncio
     async def test_send_mail_text_only(self):
         """Test sending email with text content only."""
+        mock_inbox = MagicMock()
+        mock_inbox.inbox_id = "test@agentmail.to"
         mock_response = MagicMock()
-        mock_response.id = "msg-67890"
+        mock_response.message_id = "msg-67890"
 
         with patch("api.mail.client") as mock_client:
-            mock_client.inboxes.create.return_value = mock_response
+            mock_client.inboxes.create.return_value = mock_inbox
+            mock_client.inboxes.messages.send.return_value = mock_response
 
             async with AsyncClient(
                 transport=ASGITransport(app=app),
@@ -81,20 +89,26 @@ class TestMailAPI:
             data = response.json()
             assert data["messageId"] == "msg-67890"
             assert data["status"] == "queued"
-            mock_client.inboxes.create.assert_called_once_with(
+            mock_client.inboxes.create.assert_called_once_with(display_name="Tzelem")
+            mock_client.inboxes.messages.send.assert_called_once_with(
+                inbox_id="test@agentmail.to",
                 to="test@example.com",
                 subject="Plain Text Email",
+                html=None,
                 text="Plain text content",
             )
 
     @pytest.mark.asyncio
     async def test_send_mail_html_preferred_over_text(self):
         """Test that HTML content is preferred when both HTML and text are provided."""
+        mock_inbox = MagicMock()
+        mock_inbox.inbox_id = "test@agentmail.to"
         mock_response = MagicMock()
-        mock_response.id = "msg-11111"
+        mock_response.message_id = "msg-11111"
 
         with patch("api.mail.client") as mock_client:
-            mock_client.inboxes.create.return_value = mock_response
+            mock_client.inboxes.create.return_value = mock_inbox
+            mock_client.inboxes.messages.send.return_value = mock_response
 
             async with AsyncClient(
                 transport=ASGITransport(app=app),
@@ -112,10 +126,13 @@ class TestMailAPI:
 
             assert response.status_code == 200
             # Verify HTML was used, not text
-            mock_client.inboxes.create.assert_called_once_with(
+            mock_client.inboxes.create.assert_called_once_with(display_name="Tzelem")
+            mock_client.inboxes.messages.send.assert_called_once_with(
+                inbox_id="test@agentmail.to",
                 to="test@example.com",
                 subject="Test Email",
                 html="<p>HTML content</p>",
+                text="Text content",
             )
 
     @pytest.mark.asyncio
@@ -201,16 +218,19 @@ class TestMailAPI:
                 )
 
             assert response.status_code == 500
-            assert "Failed to send mail" in response.json()["detail"]
+            assert "Failed to create mail inbox" in response.json()["detail"]
 
     @pytest.mark.asyncio
     async def test_send_mail_with_response_without_id(self):
         """Test handling response without ID attribute."""
+        mock_inbox = MagicMock()
+        mock_inbox.inbox_id = "test@agentmail.to"
         mock_response = MagicMock()
-        del mock_response.id  # Remove the id attribute
+        del mock_response.message_id  # Remove the message_id attribute
 
         with patch("api.mail.client") as mock_client:
-            mock_client.inboxes.create.return_value = mock_response
+            mock_client.inboxes.create.return_value = mock_inbox
+            mock_client.inboxes.messages.send.return_value = mock_response
 
             async with AsyncClient(
                 transport=ASGITransport(app=app),
