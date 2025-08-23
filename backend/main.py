@@ -3,6 +3,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.flows import router as flows_router
+from api.runs import router as runs_router
 from api.voice import router as voice_router
 from core.config import settings
 

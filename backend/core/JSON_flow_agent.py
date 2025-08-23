@@ -48,6 +48,8 @@ from pipecat_flows import (
     NodeConfig,
 )
 
+logger = logging.getLogger(__name__)
+
 # Optional VAD analyzer - fallback to None if not available
 try:
     from pipecat.audio.vad.silero import SileroVADAnalyzer
@@ -56,8 +58,6 @@ except ImportError as e:
     logger.warning(f"VAD analyzer not available: {e}. Continuing without VAD.")
     SileroVADAnalyzer = None
     VAD_AVAILABLE = False
-
-logger = logging.getLogger(__name__)
 
 # Default test JSON configuration
 DEFAULT_JSON_CONFIG = {

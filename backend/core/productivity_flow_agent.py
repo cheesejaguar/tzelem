@@ -49,6 +49,8 @@ from pipecat_flows import (
     NodeConfig,
 )
 
+logger = logging.getLogger(__name__)
+
 # Optional VAD analyzer - fallback to None if not available
 try:
     from pipecat.audio.vad.silero import SileroVADAnalyzer
@@ -57,10 +59,6 @@ except ImportError as e:
     logger.warning(f"VAD analyzer not available: {e}. Continuing without VAD.")
     SileroVADAnalyzer = None
     VAD_AVAILABLE = False
-
-
-
-logger = logging.getLogger(__name__)
 
 
 # Type definitions for function results
@@ -227,7 +225,7 @@ async def provide_coaching(
 ) -> tuple[CoachingResult, NodeConfig]:
     """Provide productivity coaching advice."""
     coaching_type = args.get("type", "general")
-    context = args.get("context", "")
+    # context = args.get("context", "")  # Reserved for future use
 
     logger.debug(f"Providing coaching for: {coaching_type}")
 

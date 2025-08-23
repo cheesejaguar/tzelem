@@ -7,7 +7,6 @@ from pydantic import BaseModel
 from core.config import settings
 from core.JSON_flow_agent import JSONFlowAgent
 from core.productivity_flow_agent import productivity_flow_agent
-
 from services.daily_service import create_room
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
@@ -133,36 +132,6 @@ async def run_productivity_agent(room_url: str, token: str):
 
 
 
-async def run_productivity_agent(room_url: str, token: str):
-    """Background task to run the productivity agent."""
-    try:
-        agent = productivity_flow_agent
-
-        # Create and configure the flow pipeline
-        flow_info = await agent.create_flow_pipeline(
-            room_url=room_url,
-            token=token,
-        )
-
-        # Store the agent info
-        active_agents[room_url] = {
-            "agent": agent,
-            "status": "running",
-            "features": flow_info["features"],
-        }
-
-        logger.info(f"Starting productivity agent for room: {room_url}")
-
-        # Run the agent flow
-        await agent.run_flow()
-
-    except asyncio.CancelledError:
-        logger.info(f"Productivity agent cancelled for room: {room_url}")
-        active_agents.pop(room_url, None)
-    except Exception as e:
-        logger.error(f"Error running productivity agent for room {room_url}: {e}")
-        if room_url in active_agents:
-            active_agents[room_url]["status"] = "error"
 
 
 
