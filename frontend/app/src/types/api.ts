@@ -148,6 +148,29 @@ export type RunEvent =
   | RunCompletedEvent
   | ErrorEvent;
 
+// Mail types matching backend/api/mail.py
+export interface MailRequest {
+  to: string;
+  subject: string;
+  html?: string;
+  text?: string;
+  from_name?: string;
+}
+
+export interface MailResponse {
+  messageId?: string;
+  status: 'queued' | 'sent' | 'failed' | 'mocked';
+  message: string;
+}
+
+export interface MailHealthStatus {
+  status: 'healthy' | 'unavailable';
+  agentmail_installed: boolean;
+  api_key_configured: boolean;
+  message: string;
+  mock_mode?: boolean;
+}
+
 // Pagination support (for future use)
 export interface PaginatedResponse<T> {
   items: T[];
