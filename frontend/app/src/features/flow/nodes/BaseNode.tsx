@@ -43,9 +43,18 @@ export function BaseNode({
         type="target"
         position={Position.Left}
         isConnectable={isConnectable}
-        className="w-4 h-4 !bg-white border-2 border-blue-600 hover:border-blue-700 hover:!bg-blue-50 transition-all duration-200 shadow-sm"
+        className="group w-6 h-6 !bg-[var(--accent-primary)] !border-3 !border-white hover:!bg-blue-700 hover:scale-110 transition-all duration-200 shadow-lg cursor-crosshair relative"
+        style={{
+          left: -12,
+          zIndex: 30,
+          borderRadius: '50%',
+          boxShadow: '0 4px 12px rgba(0, 102, 255, 0.4), inset 0 1px 2px rgba(255,255,255,0.3)'
+        }}
         aria-label="Input connection point"
-      />
+      >
+        {/* Inner highlight */}
+        <div className="absolute inset-1 rounded-full bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+      </Handle>
 
       {/* Node Card */}
       <div 
@@ -110,9 +119,18 @@ export function BaseNode({
         type="source"
         position={Position.Right}
         isConnectable={isConnectable}
-        className="w-4 h-4 !bg-white border-2 border-blue-600 hover:border-blue-700 hover:!bg-blue-50 transition-all duration-200 shadow-sm"
+        className="group w-6 h-6 !bg-[var(--accent-primary)] !border-3 !border-white hover:!bg-blue-700 hover:scale-110 transition-all duration-200 shadow-lg cursor-crosshair relative"
+        style={{
+          right: -12,
+          zIndex: 30,
+          borderRadius: '50%',
+          boxShadow: '0 4px 12px rgba(0, 102, 255, 0.4), inset 0 1px 2px rgba(255,255,255,0.3)'
+        }}
         aria-label="Output connection point"
-      />
+      >
+        {/* Inner highlight */}
+        <div className="absolute inset-1 rounded-full bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+      </Handle>
     </div>
   );
 }

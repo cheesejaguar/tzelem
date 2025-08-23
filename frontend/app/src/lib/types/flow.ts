@@ -50,6 +50,7 @@ export interface NodeTypes {
     data: {
       model: ModelConfig;
       classes: string[];
+      prompt?: string;
       label: string;
     };
     position: { x: number; y: number };
@@ -96,6 +97,8 @@ export interface FlowEdge {
   id: string;
   source: string;
   target: string;
+  sourceHandle?: string;
+  targetHandle?: string;
   type: "agentic" | "sequential";
   animated?: boolean;
   selected?: boolean;

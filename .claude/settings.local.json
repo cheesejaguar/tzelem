@@ -12,7 +12,13 @@
       "Bash(git commit:*)",
       "Bash(uv sync:*)",
       "Bash(uv run:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Read(//var/folders/d1/15w4sdvs6klg494qt4_l53_h0000gn/T/TemporaryItems/NSIRD_screencaptureui_nh0RLp/**)",
+      "Read(//var/folders/d1/15w4sdvs6klg494qt4_l53_h0000gn/T/TemporaryItems/NSIRD_screencaptureui_w8eMIb/**)",
+      "Read(//var/folders/d1/15w4sdvs6klg494qt4_l53_h0000gn/T/TemporaryItems/NSIRD_screencaptureui_ftSmeF/**)",
+      "Read(//var/folders/d1/15w4sdvs6klg494qt4_l53_h0000gn/T/TemporaryItems/NSIRD_screencaptureui_GaETIB/**)",
+      "Bash(npm run typecheck:*)",
+      "Read(//var/folders/d1/15w4sdvs6klg494qt4_l53_h0000gn/T/TemporaryItems/NSIRD_screencaptureui_bjHZzk/**)"
     ],
     "deny": [],
     "ask": []

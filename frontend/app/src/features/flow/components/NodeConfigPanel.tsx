@@ -274,6 +274,25 @@ function renderTypeSpecificConfig(
             onUpdate={(model) => updateData({ model })}
           />
 
+          <Card className="border-gray-100 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-700">
+                Routing Prompt
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={node.data.prompt || ""}
+                onChange={(e) => updateData({ prompt: e.target.value })}
+                placeholder="Enter instructions for how the routing agent should classify requests into different classes..."
+                className="min-h-[100px]"
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                Describe how the agent should route between the defined classes
+              </p>
+            </CardContent>
+          </Card>
+
           <ClassesConfigSection
             classes={node.data.classes || []}
             onUpdate={(classes) => updateData({ classes })}

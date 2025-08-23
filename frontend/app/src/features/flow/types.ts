@@ -42,6 +42,7 @@ export interface ExecutionAgentData {
 export interface RoutingAgentData {
   model: string;
   classes: string[];
+  prompt?: string;
 }
 
 export interface DataCollectionAgentData {

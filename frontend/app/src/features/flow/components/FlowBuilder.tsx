@@ -65,24 +65,38 @@ function FlowBuilderInner() {
     ...edge,
     selected: state.selectedEdge === edge.id,
     animated: edge.type === "agentic",
+    label: edge.data?.label,
+    labelStyle: {
+      fontSize: '10px',
+      fontWeight: '500',
+      fill: '#374151'
+    },
+    labelBgStyle: {
+      fill: 'white',
+      fillOpacity: 0.95,
+      stroke: '#d1d5db',
+      strokeWidth: 1,
+      rx: 4
+    },
     style: {
-      strokeWidth: edge.selected ? 3 : 2,
+      strokeWidth: edge.selected ? 3 : 2.5,
       stroke: edge.selected
-        ? "#0066ff"
+        ? "var(--accent-primary)"
         : edge.type === "agentic"
-          ? "#0066ff"
-          : "#6b7280",
+          ? "var(--accent-primary)"
+          : "var(--text-secondary)",
       strokeDasharray: edge.type === "sequential" ? "5,5" : undefined,
+      opacity: edge.selected ? 1 : 0.9
     },
     markerEnd: {
       type: "arrowclosed",
-      width: 20,
-      height: 20,
+      width: 18,
+      height: 18,
       color: edge.selected
-        ? "#0066ff"
+        ? "var(--accent-primary)"
         : edge.type === "agentic"
-          ? "#0066ff"
-          : "#6b7280",
+          ? "var(--accent-primary)"
+          : "var(--text-secondary)",
     },
   }));
 
@@ -139,14 +153,59 @@ function FlowBuilderInner() {
     [dispatch]
   );
 
+  const isValidConnection = useCallback(
+    (connection: Connection | Edge) => {
+      // Handle both Connection and Edge types
+      const sourceHandle = 'sourceHandle' in connection ? connection.sourceHandle : undefined;
+      const targetHandle = 'targetHandle' in connection ? connection.targetHandle : undefined;
+      
+      // Prevent self-connections
+      if (connection.source === connection.target) {
+        return false;
+      }
+      
+      // Check if connection already exists
+      const existing = state.edges.find(edge => 
+        edge.source === connection.source && 
+        edge.target === connection.target &&
+        edge.sourceHandle === sourceHandle &&
+        edge.targetHandle === targetHandle
+      );
+      
+      return !existing;
+    },
+    [state.edges]
+  );
+  
   const onConnect = useCallback(
     (params: Connection) => {
-      if (params.source && params.target) {
+      if (params.source && params.target && isValidConnection(params)) {
+        // Create a unique edge ID that includes source handle info
+        const sourceHandle = params.sourceHandle || 'default';
+        const edgeId = `edge-${params.source}-${sourceHandle}-${params.target}-${Date.now()}`;
+        
+        // Get source node to determine route label
+        const sourceNode = state.nodes.find(n => n.id === params.source);
+        let routeLabel = undefined;
+        
+        if (sourceNode?.type === 'RoutingAgent' && params.sourceHandle?.startsWith('output-')) {
+          const outputIndex = parseInt(params.sourceHandle.replace('output-', ''));
+          const classes = sourceNode.data.classes || [];
+          if (classes[outputIndex]) {
+            routeLabel = classes[outputIndex];
+          }
+        }
+        
         const newEdge: FlowEdge = {
-          id: `edge-${params.source}-${params.target}`,
+          id: edgeId,
           source: params.source,
           target: params.target,
+          sourceHandle: params.sourceHandle || undefined,
+          targetHandle: params.targetHandle || undefined,
           type: "agentic", // Default to agentic, user can change in UI
+          data: {
+            label: routeLabel
+          }
         };
 
         dispatch({
@@ -155,7 +214,7 @@ function FlowBuilderInner() {
         });
       }
     },
-    [dispatch]
+    [dispatch, state.edges, state.nodes, isValidConnection]
   );
 
   const [isDragOver, setIsDragOver] = React.useState(false);
@@ -267,6 +326,7 @@ function FlowBuilderInner() {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
+              isValidConnection={isValidConnection}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
               onDrop={onDrop}
@@ -279,6 +339,21 @@ function FlowBuilderInner() {
               panOnDrag={[1, 2]}
               selectionOnDrag={false}
               selectNodesOnDrag={false}
+              connectionLineType={'smoothstep' as any}
+              connectionRadius={30}
+              snapToGrid={false}
+              snapGrid={[20, 20]}
+              onConnectStart={(_, { handleId, handleType, nodeId }) => {
+                // Force connection to start from the correct position
+                console.log('Connection starting from:', { handleId, handleType, nodeId });
+              }}
+              connectionLineStyle={{
+                strokeWidth: 3,
+                stroke: 'var(--accent-primary)',
+                strokeDasharray: '8,4',
+                strokeLinecap: 'round',
+                opacity: 0.8
+              }}
               zoomOnScroll={true}
               zoomOnPinch={true}
               zoomOnDoubleClick={false}
@@ -293,13 +368,17 @@ function FlowBuilderInner() {
                   : "bg-gradient-to-br from-gray-50 via-white to-gray-100"
               }`}
               defaultEdgeOptions={{
-                style: { strokeWidth: 2, stroke: "#0066ff" },
+                style: { 
+                  strokeWidth: 2.5, 
+                  stroke: "var(--accent-primary)",
+                  opacity: 0.9
+                },
                 type: "smoothstep",
                 markerEnd: {
                   type: "arrowclosed",
                   width: 20,
                   height: 20,
-                  color: "#0066ff",
+                  color: "var(--accent-primary)",
                 },
               }}
             >
@@ -499,6 +578,7 @@ function createDefaultNodeData(nodeType: NodeType): FlowNode["data"] {
         label: "Routing Agent",
         model: { provider: "openai", model: "gpt-4" },
         classes: [],
+        prompt: "",
       };
     case "DataCollectionAgent":
       return {
