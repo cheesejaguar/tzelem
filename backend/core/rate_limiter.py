@@ -22,13 +22,13 @@ logger = logging.getLogger(__name__)
 def get_client_identifier(request: Request) -> str:
     """
     Get the client identifier for rate limiting.
-    
+
     By default, uses IP address. Can be extended to use user ID
     or API key for authenticated endpoints.
-    
+
     Args:
         request: FastAPI request object
-        
+
     Returns:
         Client identifier string
     """
@@ -41,11 +41,11 @@ def get_client_identifier(request: Request) -> str:
 def create_rate_limit_exceeded_handler() -> Callable:
     """
     Create a custom handler for rate limit exceeded errors.
-    
+
     Returns:
         Handler function for rate limit exceeded errors
     """
-    
+
     async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> Response:
         """Handle rate limit exceeded errors with proper response."""
         response_data = {
@@ -53,13 +53,11 @@ def create_rate_limit_exceeded_handler() -> Callable:
             "message": str(exc.detail),
             "retry_after": exc.retry_after if hasattr(exc, "retry_after") else 60,
         }
-        
+
         # Log the rate limit violation
         client_id = get_client_identifier(request)
-        logger.warning(
-            f"Rate limit exceeded for {client_id} on {request.url.path}"
-        )
-        
+        logger.warning(f"Rate limit exceeded for {client_id} on {request.url.path}")
+
         return JSONResponse(
             status_code=429,
             content=response_data,
@@ -70,7 +68,7 @@ def create_rate_limit_exceeded_handler() -> Callable:
                 "X-RateLimit-Reset": str(exc.reset) if hasattr(exc, "reset") else "",
             },
         )
-    
+
     return rate_limit_handler
 
 

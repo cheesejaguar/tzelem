@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     rate_limit_enabled: bool = True
     rate_limit_requests: int = 100  # Default requests per minute
     rate_limit_window: int = 60  # Window in seconds (1 minute)
-    
+
     # Endpoint-specific rate limits (requests per minute)
     rate_limit_voice_create: int = 10  # Voice room creation
     rate_limit_mail_send: int = 30  # Email sending

@@ -70,7 +70,9 @@ async def start_run(request: Request, response: Response, run_request: RunStartR
         )
 
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"Starting run with flowId: {run_request.flowId} or flow: {run_request.flow}")
+            logger.debug(
+                f"Starting run with flowId: {run_request.flowId} or flow: {run_request.flow}"
+            )
 
         return RunStartResponse(runId=run_id, voice=voice_info)
 
