@@ -1,10 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd frontend/app && npm run build",
+  "buildCommand": "npm ci --prefix frontend/app && npm run build --prefix frontend/app",
   "outputDirectory": "frontend/app/dist",
-  "installCommand": "cd frontend/app && npm install",
-  "routes": [
-    { "src": "^/api/(.*)$", "dest": "backend/main.py" },
-    { "src": "^(?!/api/).*$", "dest": "/index.html" }
+  "functions": {
+    "api/**/*.py": { "runtime": "python3.11" }
+  },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
