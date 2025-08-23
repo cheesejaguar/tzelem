@@ -7,12 +7,7 @@
     "api/index.py": {
       "runtime": "python3.9",
       "maxDuration": 30,
-<<<<<<< HEAD
-      "memory": 1024,
-      "excludeFiles": "{backend/tests/**,backend/**/__pycache__/**,backend/.pytest_cache/**,backend/.mypy_cache/**,backend/.ruff_cache/**,backend/.venv/**,backend/.tox/**,backend/.cache/**,backend/tmp/**,backend/.tmp/**,backend/build/**,backend/dist/**,backend/*.egg-info,backend/**/*.egg-info,backend/uv.lock,backend/**/*.pyc,backend/backend.log,backend/**/*.log,backend/logs/**,backend/htmlcov/**,backend/.coverage,backend/.coverage.*,backend/**/.DS_Store,backend/**/*.swp,backend/**/*.swo,backend/**/*.orig,frontend/**,scripts/**,infra/**,**/*.md,requirements.txt,.git/**}"
-=======
       "memory": 1024
->>>>>>> 9e09fb9 (please work)
     }
   },
   "rewrites": [
