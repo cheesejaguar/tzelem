@@ -1,0 +1,28 @@
+{
+  "name": "tzelem-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tzelem multi-agent orchestration platform monorepo",
+  "scripts": {
+    "dev:frontend": "cd frontend/app && npm run dev",
+    "build:frontend": "cd frontend/app && npm ci && npm run build",
+    "dev:backend": "cd backend && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "install:frontend": "cd frontend/app && npm ci",
+    "install:backend": "cd backend && pip install -r requirements.txt",
+    "install:all": "npm run install:frontend && npm run install:backend",
+    "test:frontend": "cd frontend/app && npm test",
+    "test:backend": "cd backend && python -m pytest",
+    "lint:frontend": "cd frontend/app && npm run lint",
+    "format:frontend": "cd frontend/app && npm run format"
+  },
+  "workspaces": [
+    "frontend/app"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}

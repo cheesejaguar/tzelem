@@ -1,48 +1,44 @@
-# Virtual environments
-.venv/
-venv/
-env/
+# Backend development files
 backend/.venv/
-backend/venv/
-backend/env/
-
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.pytest_cache/
 backend/__pycache__/
 backend/**/__pycache__/
 backend/.pytest_cache/
-
-# Test files
-backend/test_*.py
 backend/tests/
+backend/test_*.py
 backend/*.sh
-
-# Development files
 backend/uv.lock
-backend/.env
-backend/.env.*
-backend/backend.log
+backend/*.md
 backend/requirements 2.txt
+
+# Heavy dependencies not needed for basic API
+backend/core/JSON_flow_agent.py
+backend/core/productivity_flow_agent.py
+
+# Frontend development files
+frontend/app/node_modules/
+frontend/app/.next/
+frontend/app/coverage/
+frontend/app/.nyc_output/
+
+# General development files
+.git/
+.gitignore
+*.log
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Documentation
 *.md
-README.md
-backend/*.md
+docs/
+scripts/
+CLAUDE.md
+DEPLOYMENT.md
 
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
+# Development files
+requirements-vercel.txt
 
-# OS files
-.DS_Store
-Thumbs.db
-
-# Git
-.git/
-.gitignore
+# Infrastructure
+infra/
