@@ -4,26 +4,25 @@ Comprehensive test script for the Tzelem mail API.
 Tests various scenarios including success, failure, and edge cases.
 """
 
-import json
 import os
 import sys
-import time
-import requests
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Any
+
+import requests
 
 
 class Colors:
     """Terminal color codes for output formatting"""
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
 
 class MailAPITester:
@@ -71,10 +70,10 @@ class MailAPITester:
         try:
             response = requests.get(f"{self.base_url}/health", timeout=2)
             return response.status_code == 200
-        except:
+        except Exception:
             return False
     
-    def check_mail_health(self) -> Optional[Dict[str, Any]]:
+    def check_mail_health(self) -> dict[str, Any] | None:
         """Check the health of the mail service"""
         try:
             self.print_section("Mail Service Health Check")
@@ -84,30 +83,29 @@ class MailAPITester:
                 health = response.json()
                 
                 # Display health status
-                status_color = Colors.OKGREEN if health.get('status') == 'healthy' else Colors.WARNING
+                status_color = Colors.OKGREEN if health.get("status") == "healthy" else Colors.WARNING
                 print(f"   Status: {status_color}{health.get('status')}{Colors.ENDC}")
                 print(f"   AgentMail Installed: {health.get('agentmail_installed')}")
                 print(f"   API Key Configured: {health.get('api_key_configured')}")
                 print(f"   Mock Mode: {health.get('mock_mode')}")
                 print(f"   Message: {health.get('message')}")
                 
-                if not health.get('api_key_configured'):
+                if not health.get("api_key_configured"):
                     self.print_warning("AGENTMAIL_API_KEY not configured - tests will run in mock mode")
                 
                 return health
-            else:
-                self.print_failure(f"Health check failed - Status: {response.status_code}")
-                return None
+            self.print_failure(f"Health check failed - Status: {response.status_code}")
+            return None
                 
         except Exception as e:
             self.print_failure(f"Could not check health: {e}")
             return None
     
-    def test_send_email(self, 
+    def test_send_email(self,
                        test_name: str,
-                       email_data: Dict[str, Any],
+                       email_data: dict[str, Any],
                        expected_status: int = 200,
-                       expected_response_field: Optional[str] = None) -> bool:
+                       expected_response_field: str | None = None) -> bool:
         """
         Run a single email test
         
@@ -151,16 +149,15 @@ class MailAPITester:
                     result = response.json()
                     print(f"   Status: {result.get('status')}")
                     print(f"   Message: {result.get('message')}")
-                    if result.get('messageId'):
+                    if result.get("messageId"):
                         print(f"   Message ID: {result.get('messageId')}")
                 
                 self.passed_count += 1
                 return True
-            else:
-                self.print_failure(f"Expected status {expected_status}, got {response.status_code}")
-                print(f"   Response: {response.text}")
-                self.failed_count += 1
-                return False
+            self.print_failure(f"Expected status {expected_status}, got {response.status_code}")
+            print(f"   Response: {response.text}")
+            self.failed_count += 1
+            return False
                 
         except requests.exceptions.Timeout:
             self.print_failure("Request timed out")
@@ -348,7 +345,7 @@ class MailAPITester:
         elif passed > failed:
             self.print_warning(f"Most tests passed, but {failed} test(s) failed")
         else:
-            self.print_failure(f"Multiple test failures detected")
+            self.print_failure("Multiple test failures detected")
         
         # Environment recommendations
         print(f"\n{Colors.BOLD}Environment Recommendations:{Colors.ENDC}")
@@ -364,7 +361,7 @@ def main():
     """Main function"""
     # Parse command line arguments
     if len(sys.argv) > 1:
-        if sys.argv[1] in ['-h', '--help']:
+        if sys.argv[1] in ["-h", "--help"]:
             print("Usage: python test_mail_comprehensive.py [base_url]")
             print("\nRun comprehensive tests on the Tzelem mail API")
             print("\nOptions:")
@@ -384,3 +381,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

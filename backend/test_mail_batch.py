@@ -4,13 +4,13 @@ Batch email testing script for the Tzelem mail API.
 Sends multiple test emails with different configurations.
 """
 
-import json
-import time
-import random
-import requests
-from datetime import datetime, timedelta
-from typing import List, Dict, Any
 import argparse
+import random
+import time
+from datetime import datetime, timedelta
+from typing import Any
+
+import requests
 
 
 class BatchMailTester:
@@ -24,7 +24,7 @@ class BatchMailTester:
         self.failed_count = 0
         self.start_time = None
         
-    def generate_test_emails(self, count: int, recipient: str) -> List[Dict[str, Any]]:
+    def generate_test_emails(self, count: int, recipient: str) -> list[dict[str, Any]]:
         """Generate a list of test emails with varied content"""
         emails = []
         
@@ -95,7 +95,7 @@ class BatchMailTester:
         ]
         
         for i in range(count):
-            template = random.choice(templates)
+            template = random.choice(templates)  # noqa: S311
             timestamp = datetime.now() + timedelta(seconds=i)
             
             email = {
@@ -109,10 +109,10 @@ class BatchMailTester:
             
         return emails
     
-    def send_batch(self, 
-                   emails: List[Dict[str, Any]], 
+    def send_batch(self,
+                   emails: list[dict[str, Any]],
                    delay_between: float = 0.5,
-                   show_progress: bool = True) -> Dict[str, Any]:
+                   show_progress: bool = True) -> dict[str, Any]:
         """
         Send a batch of emails
         
@@ -145,8 +145,8 @@ class BatchMailTester:
                 progress = i / total * 100
                 bar_length = 40
                 filled = int(bar_length * i / total)
-                bar = '█' * filled + '░' * (bar_length - filled)
-                print(f"\r[{bar}] {progress:.1f}% ({i}/{total})", end='', flush=True)
+                bar = "█" * filled + "░" * (bar_length - filled)
+                print(f"\r[{bar}] {progress:.1f}% ({i}/{total})", end="", flush=True)
             
             try:
                 # Send email
@@ -190,7 +190,7 @@ class BatchMailTester:
         
         return results
     
-    def print_results(self, results: Dict[str, Any]):
+    def print_results(self, results: dict[str, Any]):
         """Print batch results"""
         print(f"\n{'=' * 50}")
         print("📊 Batch Results")
@@ -202,15 +202,15 @@ class BatchMailTester:
         print(f"⏱️  Duration: {results['duration']:.2f}s")
         print(f"📈 Rate: {results['total'] / results['duration']:.2f} emails/second")
         
-        if results['errors']:
+        if results["errors"]:
             print(f"\n⚠️  Errors ({len(results['errors'])} total):")
-            for error in results['errors'][:5]:  # Show first 5 errors
+            for error in results["errors"][:5]:  # Show first 5 errors
                 print(f"   • Email {error.get('email', 'N/A')}: {error.get('error', 'Unknown error')}")
-            if len(results['errors']) > 5:
+            if len(results["errors"]) > 5:
                 print(f"   ... and {len(results['errors']) - 5} more errors")
         
         # Success rate
-        success_rate = (results['sent'] / results['total'] * 100) if results['total'] > 0 else 0
+        success_rate = (results["sent"] / results["total"] * 100) if results["total"] > 0 else 0
         print(f"\n📊 Success Rate: {success_rate:.1f}%")
         
         if success_rate == 100:
@@ -222,7 +222,7 @@ class BatchMailTester:
         else:
             print("❌ Significant issues. Please check server logs.")
     
-    def run_stress_test(self, 
+    def run_stress_test(self,
                        recipient: str,
                        total_emails: int = 100,
                        batch_size: int = 10,
@@ -270,9 +270,9 @@ class BatchMailTester:
         print("📊 STRESS TEST RESULTS")
         print(f"{'=' * 60}")
         
-        total_sent = sum(r['sent'] for r in all_results)
-        total_failed = sum(r['failed'] for r in all_results)
-        total_duration = sum(r['duration'] for r in all_results)
+        total_sent = sum(r["sent"] for r in all_results)
+        total_failed = sum(r["failed"] for r in all_results)
+        total_duration = sum(r["duration"] for r in all_results)
         
         print(f"Total Emails Attempted: {total_emails}")
         print(f"✅ Successfully Sent: {total_sent}")
@@ -286,19 +286,19 @@ class BatchMailTester:
 
 def main():
     """Main function"""
-    parser = argparse.ArgumentParser(description='Batch email testing for Tzelem mail API')
-    parser.add_argument('--recipient', '-r', default='test@tzlm.io',
-                       help='Email recipient (default: test@tzlm.io)')
-    parser.add_argument('--count', '-c', type=int, default=10,
-                       help='Number of emails to send (default: 10)')
-    parser.add_argument('--delay', '-d', type=float, default=0.5,
-                       help='Delay between emails in seconds (default: 0.5)')
-    parser.add_argument('--stress', '-s', action='store_true',
-                       help='Run stress test mode')
-    parser.add_argument('--batch-size', '-b', type=int, default=10,
-                       help='Batch size for stress test (default: 10)')
-    parser.add_argument('--base-url', '-u', default='http://localhost:8000',
-                       help='Backend base URL (default: http://localhost:8000)')
+    parser = argparse.ArgumentParser(description="Batch email testing for Tzelem mail API")
+    parser.add_argument("--recipient", "-r", default="test@tzlm.io",
+                       help="Email recipient (default: test@tzlm.io)")
+    parser.add_argument("--count", "-c", type=int, default=10,
+                       help="Number of emails to send (default: 10)")
+    parser.add_argument("--delay", "-d", type=float, default=0.5,
+                       help="Delay between emails in seconds (default: 0.5)")
+    parser.add_argument("--stress", "-s", action="store_true",
+                       help="Run stress test mode")
+    parser.add_argument("--batch-size", "-b", type=int, default=10,
+                       help="Batch size for stress test (default: 10)")
+    parser.add_argument("--base-url", "-u", default="http://localhost:8000",
+                       help="Backend base URL (default: http://localhost:8000)")
     
     args = parser.parse_args()
     
@@ -311,7 +311,7 @@ def main():
         if response.status_code != 200:
             print("❌ Backend server is not responding correctly")
             return
-    except:
+    except Exception:
         print("❌ Cannot connect to backend server")
         print(f"   Make sure it's running at {args.base_url}")
         print("   Start with: cd backend && python main.py")
@@ -325,9 +325,9 @@ def main():
             print("\n📋 Mail Service Status:")
             print(f"   Status: {health.get('status')}")
             print(f"   API Key Configured: {health.get('api_key_configured')}")
-            if not health.get('api_key_configured'):
+            if not health.get("api_key_configured"):
                 print("   ⚠️  Running in mock mode (no actual emails will be sent)")
-    except:
+    except Exception:
         pass
     
     # Run appropriate test
@@ -349,3 +349,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

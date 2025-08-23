@@ -4,15 +4,16 @@ Performance testing script for the Tzelem mail API.
 Measures latency, throughput, and concurrent request handling.
 """
 
-import asyncio
-import aiohttp
-import time
-import statistics
-from datetime import datetime
-from typing import List, Dict, Any, Tuple
-import json
 import argparse
+import asyncio
+import json
+import statistics
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+from typing import Any
+
+import aiohttp
 import requests
 
 
@@ -24,7 +25,7 @@ class PerformanceTester:
         self.mail_endpoint = f"{base_url}/api/mail"
         self.results = []
         
-    def create_test_email(self, test_id: int) -> Dict[str, Any]:
+    def create_test_email(self, test_id: int) -> dict[str, Any]:
         """Create a test email payload"""
         return {
             "to": f"perf-test-{test_id}@tzlm.io",
@@ -34,7 +35,7 @@ class PerformanceTester:
             "from_name": "Performance Tester"
         }
     
-    async def send_async_request(self, session: aiohttp.ClientSession, test_id: int) -> Tuple[int, float, int]:
+    async def send_async_request(self, session: aiohttp.ClientSession, test_id: int) -> tuple[int, float, int]:
         """
         Send an async request and measure response time
         
@@ -53,14 +54,14 @@ class PerformanceTester:
                 await response.text()
                 end_time = time.perf_counter()
                 return (test_id, end_time - start_time, response.status)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             end_time = time.perf_counter()
             return (test_id, end_time - start_time, -1)  # -1 indicates timeout
-        except Exception as e:
+        except Exception:
             end_time = time.perf_counter()
             return (test_id, end_time - start_time, -2)  # -2 indicates error
     
-    async def run_concurrent_test(self, num_requests: int, max_concurrent: int = 10) -> Dict[str, Any]:
+    async def run_concurrent_test(self, num_requests: int, max_concurrent: int = 10) -> dict[str, Any]:
         """
         Run concurrent requests test
         
@@ -71,7 +72,7 @@ class PerformanceTester:
         Returns:
             Dictionary with test results
         """
-        print(f"\n🔄 Running Concurrent Test")
+        print("\n🔄 Running Concurrent Test")
         print(f"   Total requests: {num_requests}")
         print(f"   Max concurrent: {max_concurrent}")
         
@@ -93,7 +94,7 @@ class PerformanceTester:
                 # Progress indicator
                 if i % 10 == 0 or i == num_requests:
                     progress = i / num_requests * 100
-                    print(f"\r   Progress: {progress:.1f}% ({i}/{num_requests})", end='', flush=True)
+                    print(f"\r   Progress: {progress:.1f}% ({i}/{num_requests})", end="", flush=True)
             
             total_time = time.perf_counter() - start_time
             print()  # New line after progress
@@ -126,7 +127,7 @@ class PerformanceTester:
             }
         }
     
-    def run_latency_test(self, num_samples: int = 20) -> Dict[str, Any]:
+    def run_latency_test(self, num_samples: int = 20) -> dict[str, Any]:
         """
         Test individual request latency
         
@@ -136,7 +137,7 @@ class PerformanceTester:
         Returns:
             Dictionary with latency statistics
         """
-        print(f"\n⏱️  Running Latency Test")
+        print("\n⏱️  Running Latency Test")
         print(f"   Samples: {num_samples}")
         
         latencies = []
@@ -146,7 +147,7 @@ class PerformanceTester:
             
             start_time = time.perf_counter()
             try:
-                response = requests.post(
+                requests.post(
                     self.mail_endpoint,
                     json=email_data,
                     timeout=10
@@ -157,10 +158,10 @@ class PerformanceTester:
                 latencies.append(latency)
                 
                 # Show progress
-                print(f"\r   Sample {i+1}/{num_samples}: {latency:.2f}ms", end='', flush=True)
+                print(f"\r   Sample {i+1}/{num_samples}: {latency:.2f}ms", end="", flush=True)
                 
             except Exception as e:
-                print(f"\r   Sample {i+1}/{num_samples}: Error - {str(e)[:30]}", end='', flush=True)
+                print(f"\r   Sample {i+1}/{num_samples}: Error - {str(e)[:30]}", end="", flush=True)
         
         print()  # New line after progress
         
@@ -178,7 +179,7 @@ class PerformanceTester:
             }
         }
     
-    def run_burst_test(self, burst_size: int = 50, num_bursts: int = 3, delay_between: float = 5.0) -> Dict[str, Any]:
+    def run_burst_test(self, burst_size: int = 50, num_bursts: int = 3, delay_between: float = 5.0) -> dict[str, Any]:
         """
         Test API behavior under burst load
         
@@ -190,7 +191,7 @@ class PerformanceTester:
         Returns:
             Dictionary with burst test results
         """
-        print(f"\n💥 Running Burst Test")
+        print("\n💥 Running Burst Test")
         print(f"   Burst size: {burst_size}")
         print(f"   Number of bursts: {num_bursts}")
         print(f"   Delay between: {delay_between}s")
@@ -226,7 +227,7 @@ class PerformanceTester:
                             successful += 1
                         else:
                             failed += 1
-                    except:
+                    except Exception:
                         failed += 1
                 
                 burst_duration = time.perf_counter() - burst_start
@@ -251,9 +252,9 @@ class PerformanceTester:
                     time.sleep(delay_between)
         
         # Calculate aggregate statistics
-        total_successful = sum(b['successful'] for b in burst_results)
-        total_failed = sum(b['failed'] for b in burst_results)
-        avg_rate = statistics.mean(b['rate'] for b in burst_results)
+        total_successful = sum(b["successful"] for b in burst_results)
+        total_failed = sum(b["failed"] for b in burst_results)
+        avg_rate = statistics.mean(b["rate"] for b in burst_results)
         
         return {
             "bursts": burst_results,
@@ -263,11 +264,11 @@ class PerformanceTester:
             "average_rate": avg_rate
         }
     
-    async def run_ramp_up_test(self, 
+    async def run_ramp_up_test(self,
                               start_rate: int = 1,
                               end_rate: int = 20,
                               step: int = 2,
-                              duration_per_step: float = 5.0) -> Dict[str, Any]:
+                              duration_per_step: float = 5.0) -> dict[str, Any]:
         """
         Test API behavior with gradually increasing load
         
@@ -280,7 +281,7 @@ class PerformanceTester:
         Returns:
             Dictionary with ramp-up test results
         """
-        print(f"\n📈 Running Ramp-Up Test")
+        print("\n📈 Running Ramp-Up Test")
         print(f"   Rate: {start_rate} -> {end_rate} req/s")
         print(f"   Step: {step} req/s")
         print(f"   Duration per step: {duration_per_step}s")
@@ -332,11 +333,11 @@ class PerformanceTester:
             "steps": results,
             "start_rate": start_rate,
             "end_rate": end_rate,
-            "total_requests": sum(s['requests_sent'] for s in results),
-            "total_successful": sum(s['successful'] for s in results)
+            "total_requests": sum(s["requests_sent"] for s in results),
+            "total_successful": sum(s["successful"] for s in results)
         }
     
-    def print_performance_summary(self, test_results: Dict[str, Any]):
+    def print_performance_summary(self, test_results: dict[str, Any]):
         """Print a summary of performance test results"""
         print(f"\n{'=' * 60}")
         print("📊 PERFORMANCE TEST SUMMARY")
@@ -344,7 +345,7 @@ class PerformanceTester:
         
         if "latency" in test_results:
             latency = test_results["latency"]["latency_ms"]
-            print(f"\n⏱️  Latency (ms):")
+            print("\n⏱️  Latency (ms):")
             print(f"   Min: {latency['min']:.2f}")
             print(f"   Max: {latency['max']:.2f}")
             print(f"   Mean: {latency['mean']:.2f}")
@@ -352,7 +353,7 @@ class PerformanceTester:
         
         if "concurrent" in test_results:
             concurrent = test_results["concurrent"]
-            print(f"\n🔄 Concurrent Requests:")
+            print("\n🔄 Concurrent Requests:")
             print(f"   Total: {concurrent['total_requests']}")
             print(f"   Successful: {concurrent['successful']}")
             print(f"   Failed: {concurrent['failed']}")
@@ -362,7 +363,7 @@ class PerformanceTester:
         
         if "burst" in test_results:
             burst = test_results["burst"]
-            print(f"\n💥 Burst Test:")
+            print("\n💥 Burst Test:")
             print(f"   Total Requests: {burst['total_requests']}")
             print(f"   Successful: {burst['total_successful']}")
             print(f"   Failed: {burst['total_failed']}")
@@ -370,7 +371,7 @@ class PerformanceTester:
         
         if "ramp_up" in test_results:
             ramp = test_results["ramp_up"]
-            print(f"\n📈 Ramp-Up Test:")
+            print("\n📈 Ramp-Up Test:")
             print(f"   Rate Range: {ramp['start_rate']} -> {ramp['end_rate']} req/s")
             print(f"   Total Requests: {ramp['total_requests']}")
             print(f"   Total Successful: {ramp['total_successful']}")
@@ -378,16 +379,16 @@ class PerformanceTester:
 
 async def main():
     """Main function"""
-    parser = argparse.ArgumentParser(description='Performance testing for Tzelem mail API')
-    parser.add_argument('--base-url', '-u', default='http://localhost:8000',
-                       help='Backend base URL')
-    parser.add_argument('--test', '-t', choices=['all', 'latency', 'concurrent', 'burst', 'ramp'],
-                       default='all', help='Test type to run')
-    parser.add_argument('--requests', '-r', type=int, default=100,
-                       help='Number of requests for concurrent test')
-    parser.add_argument('--concurrent', '-c', type=int, default=10,
-                       help='Max concurrent requests')
-    parser.add_argument('--output', '-o', help='Output results to JSON file')
+    parser = argparse.ArgumentParser(description="Performance testing for Tzelem mail API")
+    parser.add_argument("--base-url", "-u", default="http://localhost:8000",
+                       help="Backend base URL")
+    parser.add_argument("--test", "-t", choices=["all", "latency", "concurrent", "burst", "ramp"],
+                       default="all", help="Test type to run")
+    parser.add_argument("--requests", "-r", type=int, default=100,
+                       help="Number of requests for concurrent test")
+    parser.add_argument("--concurrent", "-c", type=int, default=10,
+                       help="Max concurrent requests")
+    parser.add_argument("--output", "-o", help="Output results to JSON file")
     
     args = parser.parse_args()
     
@@ -397,7 +398,7 @@ async def main():
         if response.status_code != 200:
             print("❌ Backend server is not responding correctly")
             return
-    except:
+    except Exception:
         print("❌ Cannot connect to backend server")
         print(f"   Make sure it's running at {args.base_url}")
         return
@@ -412,19 +413,19 @@ async def main():
     print(f"Test Type: {args.test}")
     
     # Run selected tests
-    if args.test in ['all', 'latency']:
+    if args.test in ["all", "latency"]:
         results["latency"] = tester.run_latency_test()
     
-    if args.test in ['all', 'concurrent']:
+    if args.test in ["all", "concurrent"]:
         results["concurrent"] = await tester.run_concurrent_test(
             num_requests=args.requests,
             max_concurrent=args.concurrent
         )
     
-    if args.test in ['all', 'burst']:
+    if args.test in ["all", "burst"]:
         results["burst"] = tester.run_burst_test()
     
-    if args.test in ['all', 'ramp']:
+    if args.test in ["all", "ramp"]:
         results["ramp_up"] = await tester.run_ramp_up_test()
     
     # Print summary
@@ -432,10 +433,11 @@ async def main():
     
     # Save results if requested
     if args.output:
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             json.dump(results, f, indent=2, default=str)
         print(f"\n📁 Results saved to: {args.output}")
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+

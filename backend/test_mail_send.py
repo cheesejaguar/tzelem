@@ -3,9 +3,9 @@
 Test script to send a test email via the mail API to hello@tzlm.io
 """
 
-import json
-import requests
 from datetime import datetime
+
+import requests
 
 
 def send_test_email():
@@ -60,7 +60,7 @@ This is an automated test email from Tzelem's mail testing script.
     }
     
     try:
-        print(f"🚀 Sending test email to hello@tzlm.io...")
+        print("🚀 Sending test email to hello@tzlm.io...")
         print(f"   Endpoint: {endpoint}")
         print(f"   Subject: {email_data['subject']}")
         
@@ -68,19 +68,20 @@ This is an automated test email from Tzelem's mail testing script.
         response = requests.post(
             endpoint,
             json=email_data,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
+            timeout=10
         )
         
         # Check response
         if response.status_code == 200:
             result = response.json()
-            print(f"✅ Email sent successfully!")
+            print("✅ Email sent successfully!")
             print(f"   Status: {result.get('status')}")
             print(f"   Message: {result.get('message')}")
-            if result.get('messageId'):
+            if result.get("messageId"):
                 print(f"   Message ID: {result.get('messageId')}")
         else:
-            print(f"❌ Failed to send email")
+            print("❌ Failed to send email")
             print(f"   Status Code: {response.status_code}")
             print(f"   Response: {response.text}")
             
@@ -88,7 +89,7 @@ This is an automated test email from Tzelem's mail testing script.
             try:
                 error_data = response.json()
                 print(f"   Error Detail: {error_data.get('detail', 'Unknown error')}")
-            except:
+            except Exception:
                 pass
                 
     except requests.exceptions.ConnectionError:
@@ -106,7 +107,7 @@ def check_health():
     
     try:
         print("\n📋 Checking mail service health...")
-        response = requests.get(health_endpoint)
+        response = requests.get(health_endpoint, timeout=5)
         
         if response.status_code == 200:
             health = response.json()
@@ -116,9 +117,8 @@ def check_health():
             print(f"   Mock Mode: {health.get('mock_mode')}")
             print(f"   Message: {health.get('message')}")
             return health
-        else:
-            print(f"   Failed to check health - Status: {response.status_code}")
-            return None
+        print(f"   Failed to check health - Status: {response.status_code}")
+        return None
     except Exception as e:
         print(f"   Could not check health: {e}")
         return None
@@ -133,13 +133,14 @@ if __name__ == "__main__":
     health = check_health()
     
     # Send test email
-    print("")
+    print()
     send_test_email()
     
     print("\n" + "=" * 60)
     print("Test completed!")
     
-    if health and not health.get('api_key_configured'):
+    if health and not health.get("api_key_configured"):
         print("\n⚠️  Note: AGENTMAIL_API_KEY is not configured.")
         print("   Set the environment variable to enable real email sending.")
         print("   export AGENTMAIL_API_KEY='your-api-key-here'")
+
