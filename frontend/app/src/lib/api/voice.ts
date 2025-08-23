@@ -112,6 +112,9 @@ export async function cleanupRoom(roomUrl: string): Promise<void> {
  * Join a voice room using PipeCat client
  * This is a helper function that doesn't call the backend directly
  * but helps set up the PipeCat client connection
+ * 
+ * NOTE: This requires additional setup with a Transport implementation
+ * and is provided as a placeholder for future integration
  */
 export async function joinVoiceRoom(
   roomUrl: string,
@@ -120,45 +123,30 @@ export async function joinVoiceRoom(
   onDisconnect?: () => void,
   onError?: (error: Error) => void
 ): Promise<any> {
-  try {
-    // Dynamic import to avoid loading PipeCat until needed
-    const { RTVIClient } = await import('@pipecat-ai/client-js');
-    
-    const client = new RTVIClient({
-      baseUrl: roomUrl,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      enableMic: true,
-      enableCam: false,
-      timeout: 30000,
-    });
-    
-    // Set up event handlers
-    client.on('connected', () => {
-      console.log('Connected to voice room');
+  // TODO: Implement PipeCat client integration
+  // This requires setting up a proper Transport (e.g., DailyTransport)
+  // and configuring the client with the appropriate options
+  
+  console.log('Voice room integration not yet implemented');
+  console.log('Room URL:', roomUrl);
+  console.log('Token:', token);
+  
+  toast.info('Voice room integration coming soon');
+  
+  // Return a mock client object for now
+  return {
+    connect: async () => {
+      console.log('Mock connect called');
       onConnect?.();
-    });
-    
-    client.on('disconnected', () => {
-      console.log('Disconnected from voice room');
+    },
+    disconnect: async () => {
+      console.log('Mock disconnect called');
       onDisconnect?.();
-    });
-    
-    client.on('error', (error: Error) => {
-      console.error('Voice room error:', error);
-      onError?.(error);
-    });
-    
-    // Connect to the room
-    await client.connect();
-    
-    return client;
-  } catch (error) {
-    console.error('Failed to join voice room:', error);
-    toast.error('Failed to join voice room');
-    throw error;
-  }
+    },
+    on: (event: string, handler: Function) => {
+      console.log(`Mock event handler registered for ${event}`);
+    },
+  };
 }
 
 /**
