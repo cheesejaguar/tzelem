@@ -60,12 +60,12 @@ async def send_mail(mail_data: MailRequest) -> MailResponse:
             return MailResponse(
                 messageId="mock-" + str(hash(mail_data.to + mail_data.subject)),
                 status="mocked",
-                message="Email mocked in development mode"
+                message="Email mocked in development mode",
             )
-        
+
         raise HTTPException(
-            status_code=503, 
-            detail="Mail service not available - check AGENTMAIL_API_KEY and installation"
+            status_code=503,
+            detail="Mail service not available - check AGENTMAIL_API_KEY and installation",
         )
 
     try:
@@ -77,11 +77,11 @@ async def send_mail(mail_data: MailRequest) -> MailResponse:
             "to": mail_data.to,
             "subject": mail_data.subject,
         }
-        
+
         # Add from_name if provided
         if mail_data.from_name:
             email_data["from_name"] = mail_data.from_name
-        
+
         # Add content (prefer HTML if both provided)
         if mail_data.html:
             email_data["html"] = mail_data.html
@@ -89,8 +89,7 @@ async def send_mail(mail_data: MailRequest) -> MailResponse:
             email_data["text"] = mail_data.text
         else:
             raise HTTPException(
-                status_code=400, 
-                detail="Either html or text content must be provided"
+                status_code=400, detail="Either html or text content must be provided"
             )
 
         # Send email via AgentMail
@@ -101,17 +100,14 @@ async def send_mail(mail_data: MailRequest) -> MailResponse:
             logger.debug(f"Mail sent successfully: {response}")
 
         return MailResponse(
-            messageId=getattr(response, 'id', None),
+            messageId=getattr(response, "id", None),
             status="queued",
-            message="Email sent successfully"
+            message="Email sent successfully",
         )
 
     except Exception as e:
         logger.exception(f"Failed to send mail to {mail_data.to}")
-        raise HTTPException(
-            status_code=500, 
-            detail=f"Failed to send mail: {e!s}"
-        ) from e
+        raise HTTPException(status_code=500, detail=f"Failed to send mail: {e!s}") from e
 
 
 @router.get("/health")
@@ -127,5 +123,5 @@ async def mail_health() -> dict[str, Any]:
         "agentmail_installed": AgentMail is not None,
         "api_key_configured": bool(AGENTMAIL_API_KEY),
         "message": "Mail service is ready" if client else "Mail service not configured",
-        "mock_mode": os.getenv("DEBUG") == "true" and not client
+        "mock_mode": os.getenv("DEBUG") == "true" and not client,
     }
