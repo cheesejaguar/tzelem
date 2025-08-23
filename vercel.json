@@ -5,35 +5,23 @@
   "installCommand": "npm install && npm run install:frontend",
   "functions": {
     "api/index.py": {
-      "maxDuration": 30
+      "runtime": "vercel-python@3.12",
+      "maxDuration": 30,
+      "memory": 1024,
+      "excludeFiles": "{backend/tests/**,backend/**/__pycache__/**,backend/.pytest_cache/**,backend/.mypy_cache/**,backend/.ruff_cache/**,backend/.venv/**,backend/.tox/**,backend/.cache/**,backend/tmp/**,backend/.tmp/**,backend/build/**,backend/dist/**,backend/*.egg-info,backend/**/*.egg-info,backend/uv.lock,backend/**/*.pyc,backend/backend.log,backend/**/*.log,backend/logs/**,backend/htmlcov/**,backend/.coverage,backend/.coverage.*,backend/**/.DS_Store,backend/**/*.swp,backend/**/*.swo,backend/**/*.orig,frontend/**,scripts/**,infra/**,**/*.md,requirements.txt,.git/**}"
     }
   },
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
       ]
     }
   ]

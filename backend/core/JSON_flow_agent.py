@@ -68,11 +68,7 @@ except ImportError as e:
 
 # Default test JSON configuration
 
-<<<<<<< HEAD
 global tts
-=======
-global tts 
->>>>>>> 4dd1e2f (first commit)
 tts= OpenAITTSService(voice="nova")
 
 DEFAULT_JSON_CONFIG = {
@@ -305,11 +301,7 @@ async def browser_function(
                 logger.warning(f"⚠️  Error during browser session closure: {e}")
         
         # Clean up agent reference
-<<<<<<< HEAD
         if "browser_agent" in locals():
-=======
-        if 'browser_agent' in locals():
->>>>>>> 4dd1e2f (first commit)
             del browser_agent
 
 
