@@ -6,11 +6,11 @@ which is based on Flask-Limiter.
 """
 
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
@@ -114,12 +114,12 @@ def get_runs_limit() -> str:
 
 # Export the limiter and handler
 __all__ = [
-    "limiter",
     "RateLimitExceeded",
     "create_rate_limit_exceeded_handler",
     "get_default_limit",
-    "get_voice_limit",
-    "get_mail_limit",
     "get_flow_limit",
+    "get_mail_limit",
     "get_runs_limit",
+    "get_voice_limit",
+    "limiter",
 ]

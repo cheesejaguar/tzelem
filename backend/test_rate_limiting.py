@@ -3,14 +3,13 @@
 Test script to verify rate limiting functionality.
 """
 
-import asyncio
 import time
 from datetime import datetime
 
 import requests
 
 
-def test_rate_limit(endpoint: str, limit: int, window: int = 60):
+def test_rate_limit(endpoint: str, limit: int, window: int):
     """
     Test rate limiting for a specific endpoint.
     
@@ -64,7 +63,7 @@ def test_rate_limit(endpoint: str, limit: int, window: int = 60):
                 
         except requests.exceptions.ConnectionError:
             print(f"   ❌ Request {i+1}: Connection error (server not running?)")
-            return
+            return None
         except Exception as e:
             errors += 1
             print(f"   ❌ Request {i+1}: Error {e}")
@@ -75,7 +74,7 @@ def test_rate_limit(endpoint: str, limit: int, window: int = 60):
     elapsed = time.time() - start_time
     
     # Print summary
-    print(f"\n   📊 Summary:")
+    print("\n   📊 Summary:")
     print(f"      Total requests: {total_requests}")
     print(f"      Successful: {successful}")
     print(f"      Rate limited: {rate_limited}")
@@ -84,11 +83,11 @@ def test_rate_limit(endpoint: str, limit: int, window: int = 60):
     
     # Verify rate limiting worked
     if successful <= limit and rate_limited > 0:
-        print(f"   ✅ Rate limiting is working correctly!")
+        print("   ✅ Rate limiting is working correctly!")
     elif successful > limit:
-        print(f"   ⚠️  More requests succeeded than expected limit")
+        print("   ⚠️  More requests succeeded than expected limit")
     else:
-        print(f"   ⚠️  No rate limiting observed")
+        print("   ⚠️  No rate limiting observed")
     
     return successful, rate_limited, errors
 
@@ -138,12 +137,12 @@ def test_endpoint_specific_limits():
             
         time.sleep(0.1)
     
-    print(f"\n   Voice endpoint summary:")
+    print("\n   Voice endpoint summary:")
     print(f"      Successful: {successful}")
     print(f"      Rate limited: {rate_limited}")
     
     if rate_limited > 0:
-        print(f"   ✅ Voice endpoint rate limiting is working!")
+        print("   ✅ Voice endpoint rate limiting is working!")
 
 
 def main():
