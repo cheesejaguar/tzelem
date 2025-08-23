@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class RoomResponse(BaseModel):
     room: str
-    joinToken: str
+    join_token: str
 
 
 @router.post("/rooms", response_model=RoomResponse)
@@ -30,8 +30,8 @@ async def create_voice_room():
         if settings.debug:
             pass
 
-        return RoomResponse(room=room_url, joinToken=token)
+        return RoomResponse(room=room_url, join_token=token)
 
     except Exception as e:
-        logger.exception(f"Failed to create room: {e!s}")
-        raise HTTPException(status_code=500, detail="Failed to create room")
+        logger.exception("Failed to create room")
+        raise HTTPException(status_code=500, detail="Failed to create room") from e

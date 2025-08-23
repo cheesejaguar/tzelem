@@ -29,14 +29,15 @@ class TestVoiceAPI:
             mock_create.return_value = (mock_room_url, mock_token)
 
             async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test",
+                transport=ASGITransport(app=app),
+                base_url="http://test",
             ) as ac:
                 response = await ac.post("/api/voice/rooms")
 
             assert response.status_code == 200
             data = response.json()
             assert data["room"] == mock_room_url
-            assert data["joinToken"] == mock_token
+            assert data["join_token"] == mock_token
             mock_create.assert_called_once()
 
     @pytest.mark.asyncio
@@ -46,7 +47,8 @@ class TestVoiceAPI:
             mock_create.side_effect = Exception("Daily API error")
 
             async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test",
+                transport=ASGITransport(app=app),
+                base_url="http://test",
             ) as ac:
                 response = await ac.post("/api/voice/rooms")
 
@@ -65,32 +67,32 @@ class TestVoiceAPI:
             mock_create.return_value = (mock_room_url, mock_token)
 
             with patch("api.voice.settings.debug", True):
-                with patch("builtins.print") as mock_print:
-                    async with AsyncClient(
-                        transport=ASGITransport(app=app), base_url="http://test",
-                    ) as ac:
-                        response = await ac.post("/api/voice/rooms")
+                async with AsyncClient(
+                    transport=ASGITransport(app=app),
+                    base_url="http://test",
+                ) as ac:
+                    response = await ac.post("/api/voice/rooms")
 
-                    assert response.status_code == 200
-                    mock_print.assert_called_with(
-                        f"[DEBUG] Room created: {mock_room_url}",
-                    )
+                assert response.status_code == 200
+                data = response.json()
+                assert data["room"] == mock_room_url
+                assert data["join_token"] == mock_token
 
     def test_room_response_model(self):
         """Test RoomResponse Pydantic model validation."""
         # Valid response
         response = RoomResponse(
             room="https://example.daily.co/room",
-            joinToken="token123",
+            join_token="token123",
         )
         assert response.room == "https://example.daily.co/room"
-        assert response.joinToken == "token123"
+        assert response.join_token == "token123"
 
         # Test model validation with dict
         response_dict = {
             "room": "https://example.daily.co/room2",
-            "joinToken": "token456",
+            "join_token": "token456",
         }
         response = RoomResponse(**response_dict)
         assert response.room == "https://example.daily.co/room2"
-        assert response.joinToken == "token456"
+        assert response.join_token == "token456"

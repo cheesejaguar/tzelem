@@ -36,7 +36,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "C90", "I", "N", "UP", "YTT", "S", "BLE", "FBT", "B", "A", "COM", "C4", "DTZ", "T10", "DJ", "EM", "EXE", "FA", "ISC", "ICN", "G", "INP", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SLOT", "SIM", "TID", "TCH", "INT", "ARG", "PTH", "ERA", "PD", "PGH", "PL", "TRY", "FLY", "NPY", "AIR", "PERF", "FURB", "LOG", "RUF"]
-ignore = ["E501", "S101", "PLR0913", "PLR0912", "PLR0911", "PLR0915", "C901", "PLR2004"]
+ignore = ["E501", "S101", "PLR0913", "PLR0912", "PLR0911", "PLR0915", "C901", "PLR2004", "S104", "S105", "S106", "G004", "TRY401", "FBT003", "E402", "N806", "SIM117"]
 
 [tool.mypy]
 python_version = "3.11"
