@@ -1,24 +1,13 @@
 // Central export for all API modules
 
-// Re-export the main API client
-export { default as api, handleApiResponse, createEventSource } from '@/lib/api';
+// Re-export the main API client and helpers from the root api module
+export { default as api, handleApiResponse, createEventSource, getApiUrl } from '@/lib/api';
 
-// Re-export all flow functions
+// Re-export feature-specific API helpers
 export * from './flows';
-
-// Re-export all mail functions
 export * from './mail';
-
-// Re-export all run functions
 export * from './runs';
-
-// Re-export all voice functions
 export * from './voice';
 
-// Re-export types
+// Re-export shared API types
 export type * from '@/types/api';
-export { default as api, handleApiResponse, createEventSource, getApiUrl } from './api';
-export * from './flows';
-export * from './runs';
-export * from './voice';
-export * from './mail';

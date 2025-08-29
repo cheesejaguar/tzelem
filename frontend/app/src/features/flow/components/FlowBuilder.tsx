@@ -97,8 +97,10 @@ function FlowBuilderInner() {
 
   function flowToScreenPosition(flow: { x: number; y: number }): { x: number; y: number } {
     const rect = reactFlowWrapper.current?.getBoundingClientRect();
-    // @ts-expect-error getViewport may not exist in types; fallback
-    const vp = typeof (rf as any).getViewport === 'function' ? (rf as any).getViewport() : { x: 0, y: 0, zoom: (rf as any).getZoom?.() || 1 };
+    const rfAny = rf as any;
+    const vp = typeof rfAny.getViewport === 'function'
+      ? rfAny.getViewport()
+      : { x: 0, y: 0, zoom: (rfAny.getZoom?.() || 1) };
     const zoom = (vp?.zoom as number) || 1;
     const tx = (vp?.x as number) || 0;
     const ty = (vp?.y as number) || 0;

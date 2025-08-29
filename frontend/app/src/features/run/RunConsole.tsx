@@ -41,9 +41,6 @@ export function RunConsole({ className, onClose, initialRunId }: RunConsoleProps
   const [showAll, setShowAll] = useState(false);
   const MAX_RECENT = 500;
   const [filterNode, setFilterNode] = useState<string | 'all'>('all');
-  const nodeIds = Array.from(new Set(events.map((e: any) => e.nodeId).filter(Boolean)));
-  const filtered = (showAll ? events : events.slice(Math.max(0, events.length - MAX_RECENT)))
-    .filter((e: any) => filterNode === 'all' || e.nodeId === filterNode);
 
   // SSE connection for real-time events
   const sseUrl = runId ? `/api/runs/${runId}/events` : null;
@@ -83,6 +80,11 @@ export function RunConsole({ className, onClose, initialRunId }: RunConsoleProps
       console.log('SSE Connection closed');
     }
   });
+
+  // Derived values from events (must be after events is declared)
+  const nodeIds = Array.from(new Set(events.map((e: any) => e.nodeId).filter(Boolean)));
+  const filtered = (showAll ? events : events.slice(Math.max(0, events.length - MAX_RECENT)))
+    .filter((e: any) => filterNode === 'all' || e.nodeId === filterNode);
 
   // Auto-scroll to bottom when new events arrive
   useEffect(() => {

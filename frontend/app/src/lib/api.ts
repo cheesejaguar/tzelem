@@ -181,15 +181,6 @@ export function createEventSource(endpoint: string): EventSource {
   return eventSource;
 }
 
-// Additional interfaces for JSON Flow rooms
-export interface JSONFlowRoomResponse {
-  room: string;
-  joinToken: string;
-  agentStatus: string;
-  paradigm: string;
-  subAgentsCount: number;
-}
-
 // Voice/Daily API functions using the axios instance
 export const apiClient = {
   async createVoiceRoom(): Promise<VoiceRoomResponse> {
