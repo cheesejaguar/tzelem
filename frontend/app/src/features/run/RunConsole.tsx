@@ -22,19 +22,28 @@ import { exportFlow } from '@/features/flow/utils/flowExport';
 import { RunStatus, RunEvent } from '@/types/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface RunConsoleProps {
   className?: string;
   autoStart?: boolean;
+  onClose?: () => void;
+  initialRunId?: string | null;
 }
 
-export function RunConsole({ className }: RunConsoleProps) {
+export function RunConsole({ className, onClose, initialRunId }: RunConsoleProps) {
   const { state: flowState } = useFlow();
   const [runId, setRunId] = useState<string | null>(null);
   const [runStatus, setRunStatus] = useState<RunStatus | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [showAll, setShowAll] = useState(false);
+  const MAX_RECENT = 500;
+  const [filterNode, setFilterNode] = useState<string | 'all'>('all');
+  const nodeIds = Array.from(new Set(events.map((e: any) => e.nodeId).filter(Boolean)));
+  const filtered = (showAll ? events : events.slice(Math.max(0, events.length - MAX_RECENT)))
+    .filter((e: any) => filterNode === 'all' || e.nodeId === filterNode);
 
   // SSE connection for real-time events
   const sseUrl = runId ? `/api/runs/${runId}/events` : null;
@@ -81,6 +90,14 @@ export function RunConsole({ className }: RunConsoleProps) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [events]);
+
+  // Accept external runId to attach console to existing run
+  useEffect(() => {
+    if (initialRunId && initialRunId !== runId) {
+      setRunId(initialRunId);
+      setRunStatus({ id: initialRunId, status: 'pending', startedAt: new Date().toISOString(), progress: 0 });
+    }
+  }, [initialRunId]);
 
   // Start a new run
   const handleStartRun = async () => {
@@ -129,6 +146,21 @@ export function RunConsole({ className }: RunConsoleProps) {
       toast.error('Failed to stop run');
     } finally {
       setIsStopping(false);
+    }
+  };
+
+  // Retry the run (restarts from beginning with current flow)
+  const handleRetry = async () => {
+    try {
+      const flowJSON = exportFlow(flowState.nodes, flowState.edges);
+      const response = await startRun(undefined, flowJSON);
+      setRunId(response.runId);
+      setRunStatus({ id: response.runId, status: 'pending', startedAt: new Date().toISOString(), progress: 0 });
+      clearEvents();
+      toast.success('Retry started');
+    } catch (e) {
+      console.error('Failed to retry run:', e);
+      toast.error('Failed to retry run');
     }
   };
 
@@ -185,6 +217,45 @@ export function RunConsole({ className }: RunConsoleProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">Run Console</CardTitle>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAll(!showAll)}
+              className="h-8"
+            >
+              {showAll ? 'Show Recent' : 'Show All'}
+            </Button>
+            <Select value={filterNode} onValueChange={(v) => setFilterNode(v as any)}>
+              <SelectTrigger className="h-8 w-40 text-xs">
+                <SelectValue placeholder="Filter by node" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All nodes</SelectItem>
+                {nodeIds.map(id => (
+                  <SelectItem key={id} value={id}>{id}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDownloadLogs}
+              disabled={events.length === 0}
+              className="h-8"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              Export
+            </Button>
+            {onClose && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-8"
+              >
+                ✕
+              </Button>
+            )}
             {/* Connection status */}
             <Badge variant="outline" className="text-xs">
               <span className={cn(
@@ -233,6 +304,15 @@ export function RunConsole({ className }: RunConsoleProps) {
             <Trash2 className="h-4 w-4 mr-1" />
             Clear
           </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleRetry}
+            disabled={!runStatus || (runStatus.status !== 'failed' && runStatus.status !== 'completed')}
+          >
+            Retry
+          </Button>
           
           <Button
             size="sm"
@@ -261,7 +341,7 @@ export function RunConsole({ className }: RunConsoleProps) {
       
       <CardContent className="flex-1 p-0 overflow-hidden">
         <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
-          {events.length === 0 ? (
+          {filtered.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No events yet</p>
@@ -269,35 +349,27 @@ export function RunConsole({ className }: RunConsoleProps) {
             </div>
           ) : (
             <div className="space-y-2">
-              {events.map((event, index) => (
-                <div
-                  key={index}
-                  className="flex items-start gap-2 text-xs font-mono p-2 rounded bg-muted/50 hover:bg-muted transition-colors"
-                >
-                  {getEventIcon(event.type)}
-                  <div className="flex-1 break-all">
-                    <span className="text-muted-foreground">
-                      [{new Date(event.timestamp).toLocaleTimeString()}]
-                    </span>
-                    {' '}
-                    <span className="font-semibold text-primary">
-                      {event.type}
-                    </span>
-                    {event.type === 'progress' && (
-                      <span className="ml-2 text-muted-foreground">
-                        {Math.round((event as any).progress * 100)}%
-                      </span>
-                    )}
-                    {event.type === 'node_started' && (
-                      <span className="ml-2 text-blue-600">
-                        Node: {(event as any).nodeId}
-                      </span>
-                    )}
-                    {event.type === 'error' && (
-                      <span className="ml-2 text-red-600">
-                        {(event as any).message}
-                      </span>
-                    )}
+              {filtered.map((event, index) => (
+                <div key={index} className="relative pl-6">
+                  <div className="absolute left-2 top-0 bottom-0 w-px bg-border" />
+                  <div className="absolute left-1.5 top-2 w-2 h-2 rounded-full bg-primary" />
+                  <div className="flex items-start gap-2 text-xs font-mono p-2 rounded bg-muted/50 hover:bg-muted transition-colors">
+                    {getEventIcon(event.type)}
+                    <div className="flex-1 break-all">
+                      <span className="text-muted-foreground">[{new Date(event.timestamp).toLocaleTimeString()}]</span>{' '}
+                      <span className="font-semibold text-primary">{event.type}</span>
+                      {event.nodeId && (
+                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground border">
+                          {event.nodeId}
+                        </span>
+                      )}
+                      {event.type === 'progress' && (
+                        <span className="ml-2 text-muted-foreground">{Math.round((event as any).progress * 100)}%</span>
+                      )}
+                      {event.type === 'error' && (
+                        <span className="ml-2 text-red-600">{(event as any).message}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

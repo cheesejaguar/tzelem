@@ -328,6 +328,43 @@ function validateFlow(nodes: FlowNode[], edges: FlowEdge[]): ValidationError[] {
     });
   }
 
+  // Edge-specific validations
+  if (edges.length > 0) {
+    const nodeById = new Map(nodes.map((n) => [n.id, n] as const));
+    const hasMaster = nodes.some((n) => n.type === "MasterAgent");
+
+    // Agentic edges should originate from MasterAgent
+    edges.forEach((edge) => {
+      const source = nodeById.get(edge.source);
+      const target = nodeById.get(edge.target);
+
+      if (!source || !target) {
+        errors.push({
+          edgeId: edge.id,
+          message: "Edge references missing node",
+          severity: "error",
+        });
+        return;
+      }
+
+      if (edge.type === "agentic" && source.type !== "MasterAgent") {
+        errors.push({
+          edgeId: edge.id,
+          message: "Agentic edges must originate from a Master Agent",
+          severity: "error",
+        });
+      }
+    });
+
+    // If agentic edges exist, require a MasterAgent in the graph
+    if (edges.some((e) => e.type === "agentic") && !hasMaster) {
+      errors.push({
+        message: "Agentic flows require a Master Agent",
+        severity: "error",
+      });
+    }
+  }
+
   return errors;
 }
 

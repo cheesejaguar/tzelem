@@ -48,6 +48,23 @@ export function NodeConfigPanel() {
   return (
     <div className="h-full overflow-y-auto bg-gray-50/30 border-l border-gray-100">
       <div className="p-5 space-y-5">
+        {/* Issues for selected node */}
+        {state.errors.some(e => e.nodeId === selectedNode.id) && (
+          <Card className="border-amber-200 bg-amber-50/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-amber-800">
+                Issues
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {state.errors.filter(e => e.nodeId === selectedNode.id).map((e, i) => (
+                <div key={i} className="text-xs text-amber-800">
+                  • {e.message}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
         {/* Header */}
         <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
           <div>

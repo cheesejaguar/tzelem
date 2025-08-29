@@ -28,6 +28,7 @@ import { MailAgentNode } from "../nodes/MailAgentNode";
 
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Brain } from "lucide-react";
+import { RunConsole } from "@/features/run/RunConsole";
 
 const nodeTypes = {
   MasterAgent: MasterAgentNode,
@@ -42,13 +43,16 @@ const edgeTypes = {};
 function FlowBuilderInner() {
   const { state, dispatch } = useFlow();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const { screenToFlowPosition } = useReactFlow();
+  const rf = useReactFlow();
+  const { screenToFlowPosition } = rf;
 
   // Enable keyboard shortcuts
   useKeyboardShortcuts();
 
   // Local nodes state for smooth dragging
   const [localNodes, setLocalNodes] = React.useState<Node[]>([]);
+  const [isConsoleOpen, setIsConsoleOpen] = React.useState(false);
+  const [lastRunId, setLastRunId] = React.useState<string | null>(null);
 
   // Sync local nodes with global state
   React.useEffect(() => {
@@ -86,6 +90,26 @@ function FlowBuilderInner() {
     },
   }));
 
+  const [alignX, setAlignX] = React.useState(false);
+  const [alignY, setAlignY] = React.useState(false);
+  const [alignXPos, setAlignXPos] = React.useState<number | null>(null);
+  const [alignYPos, setAlignYPos] = React.useState<number | null>(null);
+
+  function flowToScreenPosition(flow: { x: number; y: number }): { x: number; y: number } {
+    const rect = reactFlowWrapper.current?.getBoundingClientRect();
+    // @ts-expect-error getViewport may not exist in types; fallback
+    const vp = typeof (rf as any).getViewport === 'function' ? (rf as any).getViewport() : { x: 0, y: 0, zoom: (rf as any).getZoom?.() || 1 };
+    const zoom = (vp?.zoom as number) || 1;
+    const tx = (vp?.x as number) || 0;
+    const ty = (vp?.y as number) || 0;
+    const left = rect?.left || 0;
+    const top = rect?.top || 0;
+    return {
+      x: flow.x * zoom + tx - left,
+      y: flow.y * zoom + ty - top,
+    };
+  }
+
   const onNodesChange = useCallback(
     (changes: any[]) => {
       // Apply changes to local nodes immediately for smooth dragging
@@ -93,14 +117,52 @@ function FlowBuilderInner() {
 
       // Handle other change types and update global state
       changes.forEach((change: any) => {
-        if (change.type === "position" && change.dragging === false) {
+        if (change.type === "position" && change.dragging === true) {
+          // During drag: indicate alignment guides when close to other nodes
+          const tolerance = 10;
+          const others = localNodes.filter((n) => n.id !== change.id);
+          let showX = false;
+          let showY = false;
+          let guideX: number | null = null;
+          let guideY: number | null = null;
+          if (change.position) {
+            for (const n of others) {
+              if (Math.abs(n.position.x - change.position.x) < tolerance) {
+                showX = true;
+                guideX = flowToScreenPosition({ x: n.position.x, y: n.position.y }).x;
+              }
+              if (Math.abs(n.position.y - change.position.y) < tolerance) {
+                showY = true;
+                guideY = flowToScreenPosition({ x: n.position.x, y: n.position.y }).y;
+              }
+              if (showX && showY) break;
+            }
+          }
+          setAlignX(showX);
+          setAlignY(showY);
+          setAlignXPos(guideX);
+          setAlignYPos(guideY);
+        } else if (change.type === "position" && change.dragging === false) {
+          // Clear guides on drop
+          setAlignX(false);
+          setAlignY(false);
+          setAlignXPos(null);
+          setAlignYPos(null);
           // Update global state when dragging is complete
           if (change.position) {
+            // Snap to other nodes' positions (simple alignment snapping)
+            const tolerance = 10;
+            const others = localNodes.filter((n) => n.id !== change.id);
+            let { x, y } = change.position;
+            for (const n of others) {
+              if (Math.abs(n.position.x - x) < tolerance) x = n.position.x;
+              if (Math.abs(n.position.y - y) < tolerance) y = n.position.y;
+            }
             dispatch({
               type: "UPDATE_NODE_POSITION",
               payload: {
                 id: change.id,
-                position: change.position,
+                position: { x, y },
               },
             });
           }
@@ -117,7 +179,7 @@ function FlowBuilderInner() {
         }
       });
     },
-    [dispatch]
+    [dispatch, localNodes]
   );
 
   const onEdgesChange = useCallback(
@@ -142,11 +204,16 @@ function FlowBuilderInner() {
   const onConnect = useCallback(
     (params: Connection) => {
       if (params.source && params.target) {
+        // Choose a sensible default based on source node type
+        const sourceNode = state.nodes.find((n) => n.id === params.source);
+        const defaultType: FlowEdge["type"] =
+          sourceNode?.type === "MasterAgent" ? "agentic" : "sequential";
+
         const newEdge: FlowEdge = {
           id: `edge-${params.source}-${params.target}`,
           source: params.source,
           target: params.target,
-          type: "agentic", // Default to agentic, user can change in UI
+          type: defaultType,
         };
 
         dispatch({
@@ -155,7 +222,7 @@ function FlowBuilderInner() {
         });
       }
     },
-    [dispatch]
+    [dispatch, state.nodes]
   );
 
   const [isDragOver, setIsDragOver] = React.useState(false);
@@ -248,7 +315,14 @@ function FlowBuilderInner() {
     <div className="h-screen w-screen flex flex-col bg-white">
       {/* Top Toolbar - Fixed Header */}
       <div className="h-14 flex-shrink-0 border-b border-gray-100 bg-white/95 backdrop-blur-sm z-50">
-        <FlowToolbar />
+        <FlowToolbar
+          onToggleConsole={() => setIsConsoleOpen((v) => !v)}
+          isConsoleOpen={isConsoleOpen}
+          onRunStarted={(id) => {
+            setLastRunId(id);
+            setIsConsoleOpen(true);
+          }}
+        />
       </div>
 
       {/* Main Content Area */}
@@ -277,13 +351,15 @@ function FlowBuilderInner() {
               nodesConnectable={true}
               elementsSelectable={true}
               panOnDrag={[1, 2]}
-              selectionOnDrag={false}
-              selectNodesOnDrag={false}
+              selectionOnDrag={true}
+              selectNodesOnDrag={true}
               zoomOnScroll={true}
               zoomOnPinch={true}
               zoomOnDoubleClick={false}
               panOnScroll={false}
               preventScrolling={true}
+              snapToGrid={true}
+              snapGrid={[20, 20]}
               fitView
               fitViewOptions={{ padding: 0.2 }}
               attributionPosition="bottom-left"
@@ -310,6 +386,17 @@ function FlowBuilderInner() {
                 color="#d1d5db"
                 className="opacity-60"
               />
+              {/* Alignment guides overlay (subtle) */}
+              {alignX && alignXPos !== null && (
+                <div className="pointer-events-none absolute inset-0">
+                  <div className="absolute top-0 bottom-0 w-px bg-blue-500/60" style={{ left: alignXPos }} />
+                </div>
+              )}
+              {alignY && alignYPos !== null && (
+                <div className="pointer-events-none absolute inset-0">
+                  <div className="absolute left-0 right-0 h-px bg-blue-500/60" style={{ top: alignYPos }} />
+                </div>
+              )}
               <Controls
                 className="flex flex-col gap-2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-2"
                 showZoom={true}
@@ -410,6 +497,35 @@ function FlowBuilderInner() {
                 >
                   Delete
                 </Button>
+                {state.selectedEdge && (
+                  <div className="flex items-center gap-2 pl-2 ml-1 border-l border-gray-200">
+                    <span className="text-xs text-gray-600">Edge:</span>
+                    <Button
+                      size="sm"
+                      variant={
+                        state.edges.find((e) => e.id === state.selectedEdge)?.type ===
+                        "agentic"
+                          ? "default"
+                          : "outline"
+                      }
+                      onClick={() => {
+                        const edge = state.edges.find((e) => e.id === state.selectedEdge);
+                        if (!edge) return;
+                        const newType = edge.type === "agentic" ? "sequential" : "agentic";
+                        dispatch({
+                          type: "UPDATE_EDGE",
+                          payload: { id: edge.id, data: { type: newType } as any },
+                        });
+                      }}
+                      className="h-8 px-3 text-xs"
+                    >
+                      {state.edges.find((e) => e.id === state.selectedEdge)?.type ===
+                      "agentic"
+                        ? "Agentic"
+                        : "Sequential"}
+                    </Button>
+                  </div>
+                )}
                 <div className="w-px h-4 bg-gray-200" />
                 <Button
                   size="sm"
@@ -427,42 +543,41 @@ function FlowBuilderInner() {
 
             {/* Empty State */}
             {state.nodes.length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="text-center max-w-md">
-                  <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
-                    <Brain className="w-10 h-10 text-white" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center max-w-lg bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-md p-8">
+                  <div className="w-14 h-14 mx-auto mb-5 rounded-xl bg-gradient-to-br from-primary/90 to-primary shadow-sm flex items-center justify-center">
+                    <span className="text-primary-foreground font-semibold">TZ</span>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                    Start Building Your Workflow
-                  </h3>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">Create Your First Flow</h3>
                   <p className="text-gray-600 mb-6 leading-relaxed">
-                    Drag agents from the left panel to create your workflow.
-                    Connect them together to build powerful agent
-                    orchestrations.
+                    Drag agents from the left panel, connect them, and configure each to orchestrate powerful workflows.
                   </p>
-                  <div className="bg-gray-100 rounded-lg p-4 text-left">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">
-                      Quick Start:
-                    </h4>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <span className="w-1 h-1 bg-gray-400 rounded-full" />
-                        <span>Start with a Master Agent</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-1 h-1 bg-gray-400 rounded-full" />
-                        <span>Add Execution Agents for tasks</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-1 h-1 bg-gray-400 rounded-full" />
-                        <span>Connect agents with edges</span>
-                      </div>
-                    </div>
+                  <div className="flex items-center justify-center gap-3 mb-5">
+                    <Button variant="default" onClick={() => (document.querySelector('[data-template-trigger]') as HTMLElement)?.click()}>
+                      New from template
+                    </Button>
+                    <Button variant="outline" onClick={() => (document.querySelector('[data-import-trigger]') as HTMLElement)?.click()}>
+                      Import flow
+                    </Button>
+                  </div>
+                  <div className="text-left bg-muted rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-foreground mb-2">Quick Start</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
+                      <li>Start with a Master Agent</li>
+                      <li>Add Execution or Mail agents as needed</li>
+                      <li>Connect agents with Agentic or Sequential edges</li>
+                    </ul>
                   </div>
                 </div>
               </div>
             )}
           </div>
+          {/* Bottom Run Console Drawer */}
+          {isConsoleOpen && (
+            <div className="absolute left-0 right-0 bottom-0 h-96 border-t border-gray-200 bg-white shadow-xl z-40">
+              <RunConsole className="h-full" onClose={() => setIsConsoleOpen(false)} initialRunId={lastRunId} />
+            </div>
+          )}
         </div>
 
         {/* Right Panel - Node Configuration */}

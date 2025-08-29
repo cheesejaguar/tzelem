@@ -81,6 +81,13 @@ export async function stopRun(runId: string): Promise<void> {
     );
     toast.success('Run stopped successfully');
   } catch (error) {
+    // If backend doesn't support /stop yet, treat as local stop
+    const status = (error as any)?.response?.status;
+    if (status === 404) {
+      console.warn(`Stop endpoint not available; soft-stopping run ${runId}`);
+      toast.info('Stop not supported yet; disconnected locally.');
+      return;
+    }
     console.error(`Failed to stop run ${runId}:`, error);
     toast.error('Failed to stop run');
     throw error;
