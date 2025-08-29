@@ -58,6 +58,12 @@ export function RunConsole({ className, onClose, initialRunId }: RunConsoleProps
         case 'run_started':
           setRunStatus(prev => prev ? { ...prev, status: 'running' } : null);
           break;
+        case 'node_completed':
+          setRunStatus(prev => prev ? { 
+            ...prev, 
+            progress: (event as any).progress ?? prev.progress 
+          } : null);
+          break;
         case 'run_completed':
           setRunStatus(prev => prev ? { 
             ...prev, 
@@ -69,7 +75,11 @@ export function RunConsole({ className, onClose, initialRunId }: RunConsoleProps
           setRunStatus(prev => prev ? { ...prev, progress: event.progress } : null);
           break;
         case 'node_started':
-          setRunStatus(prev => prev ? { ...prev, currentNode: event.nodeId } : null);
+          setRunStatus(prev => prev ? { 
+            ...prev, 
+            currentNode: event.nodeId,
+            progress: (event as any).progress ?? prev.progress
+          } : null);
           break;
       }
     },

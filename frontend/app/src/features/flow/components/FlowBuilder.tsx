@@ -555,10 +555,18 @@ function FlowBuilderInner() {
                     Drag agents from the left panel, connect them, and configure each to orchestrate powerful workflows.
                   </p>
                   <div className="flex items-center justify-center gap-3 mb-5">
-                    <Button variant="default" onClick={() => (document.querySelector('[data-template-trigger]') as HTMLElement)?.click()}>
+                    <Button
+                      variant="default"
+                      className="text-white"
+                      onClick={() => (document.querySelector('[data-template-trigger]') as HTMLElement)?.click()}
+                    >
                       New from template
                     </Button>
-                    <Button variant="outline" onClick={() => (document.querySelector('[data-import-trigger]') as HTMLElement)?.click()}>
+                    <Button
+                      variant="outline"
+                      className="text-gray-700"
+                      onClick={() => (document.querySelector('[data-import-trigger]') as HTMLElement)?.click()}
+                    >
                       Import flow
                     </Button>
                   </div>
