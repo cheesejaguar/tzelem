@@ -107,6 +107,10 @@ class TestCreateOrUpdateFlow:
 
         assert response.status_code == 200
         assert response.json() == {"flowId": "minimal-flow"}
+        # Unset optional fields are dropped (exclude_none) before storing
+        mock_convex_client.mutation.assert_called_once_with(
+            "flows:createFlow", {"flowData": minimal_flow}
+        )
 
     def test_create_flow_validation_error(
         self, client: TestClient, mock_convex_client: MagicMock
@@ -120,7 +124,9 @@ class TestCreateOrUpdateFlow:
         response = client.post("/api/flows", json=invalid_flow)
 
         assert response.status_code == 422  # Validation error
-        assert "Field required" in str(response.json())
+        missing = {e["loc"][-1] for e in response.json()["detail"] if e["type"] == "missing"}
+        assert missing == {"id", "paradigm", "nodes", "edges", "version"}
+        mock_convex_client.mutation.assert_not_called()
 
     def test_create_flow_convex_error(
         self, client: TestClient, sample_flow_data: dict[str, Any], mock_convex_client: MagicMock
@@ -131,7 +137,7 @@ class TestCreateOrUpdateFlow:
         response = client.post("/api/flows", json=sample_flow_data)
 
         assert response.status_code == 500
-        assert "Failed to store flow" in response.json()["detail"]
+        assert response.json()["detail"] == "Failed to store flow: Convex connection failed"
 
     def test_update_existing_flow(
         self, client: TestClient, sample_flow_data: dict[str, Any], mock_convex_client: MagicMock
@@ -151,6 +157,10 @@ class TestCreateOrUpdateFlow:
 
         assert response.status_code == 200
         assert response.json() == {"flowId": "test-flow-001"}
+        # The same flow ID is sent again with the revised fields
+        mock_convex_client.mutation.assert_called_once_with(
+            "flows:createFlow", {"flowData": updated_flow}
+        )
 
 
 class TestGetFlow:
@@ -188,7 +198,7 @@ class TestGetFlow:
         response = client.get("/api/flows/test-flow-001")
 
         assert response.status_code == 500
-        assert "Failed to retrieve flow" in response.json()["detail"]
+        assert response.json()["detail"] == "Failed to retrieve flow: Convex query failed"
 
     def test_get_flow_with_special_characters(
         self, client: TestClient, sample_flow_data: dict[str, Any], mock_convex_client: MagicMock
@@ -219,8 +229,8 @@ class TestListFlows:
         response = client.get("/api/flows")
 
         assert response.status_code == 200
-        assert len(response.json()) == 2
         assert response.json() == flows_list
+        mock_convex_client.query.assert_called_once_with("flows:listFlows")
 
     def test_list_flows_empty(self, client: TestClient, mock_convex_client: MagicMock) -> None:
         """Test listing flows when none exist."""
@@ -240,7 +250,7 @@ class TestListFlows:
         response = client.get("/api/flows")
 
         assert response.status_code == 500
-        assert "Failed to list flows" in response.json()["detail"]
+        assert response.json()["detail"] == "Failed to list flows: Convex list failed"
 
 
 class TestFlowDataModel:
@@ -336,10 +346,10 @@ class TestIntegration:
         assert get_response.status_code == 200
         assert get_response.json()["id"] == flow_id
 
-    def test_concurrent_flow_operations(
+    def test_multiple_sequential_flow_creations(
         self, client: TestClient, mock_convex_client: MagicMock
     ) -> None:
-        """Test handling concurrent flow operations."""
+        """Test that several flows posted one after another are each stored."""
         flows: list[dict[str, Any]] = [
             {
                 "id": f"flow-{i}",
@@ -360,9 +370,11 @@ class TestIntegration:
             }
             response = client.post("/api/flows", json=flow)
             assert response.status_code == 200
+            assert response.json() == {"flowId": flow["id"]}
 
-        # Verify all mutations were called
-        assert mock_convex_client.mutation.call_count == 5
+        # Each flow was stored with its own payload
+        stored = [c.args[1]["flowData"] for c in mock_convex_client.mutation.call_args_list]
+        assert stored == flows
 
 
 class TestErrorHandling:
@@ -376,6 +388,7 @@ class TestErrorHandling:
             headers={"Content-Type": "application/json"},
         )
         assert response.status_code == 422
+        assert response.json()["detail"][0]["type"] == "json_invalid"
 
     def test_empty_request_body(self, client: TestClient) -> None:
         """Test handling of empty request body."""
@@ -403,3 +416,7 @@ class TestErrorHandling:
 
         response = client.post("/api/flows", json=large_flow)
         assert response.status_code == 200
+        assert response.json() == {"flowId": "large-flow"}
+        mock_convex_client.mutation.assert_called_once_with(
+            "flows:createFlow", {"flowData": large_flow}
+        )
