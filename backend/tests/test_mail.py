@@ -4,7 +4,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
 # Add backend directory to path
@@ -13,8 +12,6 @@ sys.path.insert(0, str(backend_dir))
 
 from api.mail import MailRequest, MailResponse
 from main import app
-
-client = TestClient(app)
 
 
 class TestMailAPI:
@@ -176,7 +173,9 @@ class TestMailAPI:
             data = response.json()
             assert data["status"] == "mocked"
             assert data["message"] == "Email mocked in development mode"
-            assert data["messageId"].startswith("mock-")
+            assert data["messageId"] == "mock-" + str(
+                hash("debug@example.com" + "Debug Email"),
+            )
 
     @pytest.mark.asyncio
     async def test_send_mail_no_client_no_debug(self):
@@ -218,7 +217,8 @@ class TestMailAPI:
                 )
 
             assert response.status_code == 500
-            assert "Failed to create mail inbox" in response.json()["detail"]
+            assert response.json()["detail"] == "Failed to create mail inbox: AgentMail API error"
+            mock_client.inboxes.messages.send.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_send_mail_with_response_without_id(self):
@@ -330,21 +330,26 @@ class TestMailAPI:
             )
 
         assert response.status_code == 422  # Unprocessable Entity for validation errors
+        errors = response.json()["detail"]
+        assert any(e["loc"] == ["body", "to"] and e["type"] == "missing" for e in errors)
 
     @pytest.mark.asyncio
     async def test_send_mail_logging(self, caplog):
-        """Test that appropriate logging occurs during email sending."""
+        """Test that debug logging records the recipient and the send result."""
+        mock_inbox = MagicMock()
+        mock_inbox.inbox_id = "log@agentmail.to"
         mock_response = MagicMock()
-        mock_response.id = "msg-log-test"
+        mock_response.message_id = "msg-log-test"
 
-        with patch("api.mail.client") as mock_client, caplog.at_level("DEBUG"):
-            mock_client.inboxes.create.return_value = mock_response
+        with patch("api.mail.client") as mock_client, caplog.at_level("DEBUG", logger="api.mail"):
+            mock_client.inboxes.create.return_value = mock_inbox
+            mock_client.inboxes.messages.send.return_value = mock_response
 
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test",
             ) as ac:
-                await ac.post(
+                response = await ac.post(
                     "/api/mail",
                     json={
                         "to": "test@example.com",
@@ -353,8 +358,72 @@ class TestMailAPI:
                     },
                 )
 
-            # Check that debug logging occurred (if enabled)
-            # Note: This test may need adjustment based on actual logging configuration
+        assert response.status_code == 200
+        messages = [r.getMessage() for r in caplog.records if r.name == "api.mail"]
+        assert "Sending mail to: test@example.com, subject: Test Email" in messages
+        assert "Created AgentMail inbox: log@agentmail.to" in messages
+        assert any(m.startswith("Mail sent successfully:") for m in messages)
+
+    @pytest.mark.asyncio
+    async def test_send_mail_uses_configured_inbox(self):
+        """Test that AGENTMAIL_INBOX_ID skips inbox creation and is used as sender."""
+        mock_response = MagicMock()
+        mock_response.message_id = "msg-configured"
+
+        with (
+            patch("api.mail.client") as mock_client,
+            patch.dict(os.environ, {"AGENTMAIL_INBOX_ID": "configured@agentmail.to"}),
+        ):
+            mock_client.inboxes.messages.send.return_value = mock_response
+
+            async with AsyncClient(
+                transport=ASGITransport(app=app),
+                base_url="http://test",
+            ) as ac:
+                response = await ac.post(
+                    "/api/mail",
+                    json={
+                        "to": "test@example.com",
+                        "subject": "Configured",
+                        "text": "Body",
+                    },
+                )
+
+        assert response.status_code == 200
+        assert response.json()["messageId"] == "msg-configured"
+        mock_client.inboxes.create.assert_not_called()
+        mock_client.inboxes.messages.send.assert_called_once_with(
+            inbox_id="configured@agentmail.to",
+            to="test@example.com",
+            subject="Configured",
+            html=None,
+            text="Body",
+        )
+
+    @pytest.mark.asyncio
+    async def test_send_mail_send_exception(self):
+        """Test that a failure while sending is reported as a 500 with the cause."""
+        with (
+            patch("api.mail.client") as mock_client,
+            patch.dict(os.environ, {"AGENTMAIL_INBOX_ID": "configured@agentmail.to"}),
+        ):
+            mock_client.inboxes.messages.send.side_effect = Exception("rate limited")
+
+            async with AsyncClient(
+                transport=ASGITransport(app=app),
+                base_url="http://test",
+            ) as ac:
+                response = await ac.post(
+                    "/api/mail",
+                    json={
+                        "to": "test@example.com",
+                        "subject": "Test Email",
+                        "text": "Body",
+                    },
+                )
+
+        assert response.status_code == 500
+        assert response.json()["detail"] == "Failed to send mail: rate limited"
 
     def test_mail_request_model(self):
         """Test MailRequest model validation."""

@@ -1,3 +1,4 @@
+import logging
 import sys
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -7,6 +8,8 @@ import pytest
 # Add backend directory to path
 backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
+
+from pipecat.transports.services.helpers.daily_rest import DailyRoomParams
 
 from services.daily_service import create_room
 
@@ -41,13 +44,15 @@ class TestDailyService:
 
             # Verify calls were made
             mock_helper_instance.create_room.assert_called_once()
+            (params,) = mock_helper_instance.create_room.call_args.args
+            assert isinstance(params, DailyRoomParams)
             mock_helper_instance.get_token.assert_called_once_with(
                 mock_room_url,
                 expiry_time=3600,
             )
 
     @pytest.mark.asyncio
-    async def test_create_room_with_debug_logging(self):
+    async def test_create_room_with_debug_logging(self, caplog):
         """Test room creation with debug logging enabled."""
         mock_room_url = "https://example.daily.co/debug-room"
         mock_token = "debug-token-very-long-string-that-should-be-truncated"
@@ -62,17 +67,38 @@ class TestDailyService:
             mock_helper_instance.create_room = AsyncMock(return_value=mock_room)
             mock_helper_instance.get_token = AsyncMock(return_value=mock_token)
 
-            with patch("services.daily_service.settings.debug", True):
-                with patch("services.daily_service.logger") as mock_logger:
-                    room_url, token = await create_room()
+            with (
+                patch("services.daily_service.settings.debug", True),
+                caplog.at_level(logging.DEBUG, logger="services.daily_service"),
+            ):
+                room_url, token = await create_room()
 
-                    # Check debug logs were called
-                    mock_logger.debug.assert_any_call(
-                        f"Created Daily room: {mock_room_url}",
-                    )
-                    mock_logger.debug.assert_any_call(
-                        f"Join token: {mock_token[:20]}...",
-                    )
+            assert (room_url, token) == (mock_room_url, mock_token)
+            messages = [r.getMessage() for r in caplog.records]
+            assert f"Created Daily room: {mock_room_url}" in messages
+            # Token is truncated to its first 20 characters in logs
+            assert "Join token: debug-token-very-lon..." in messages
+            assert not any(mock_token in m for m in messages)
+
+    @pytest.mark.asyncio
+    async def test_create_room_no_debug_logging_when_disabled(self, caplog):
+        """Test that room details are not logged when debug mode is off."""
+        mock_room = MagicMock()
+        mock_room.url = "https://example.daily.co/quiet-room"
+
+        with patch("services.daily_service.DailyRESTHelper") as MockHelper:
+            mock_helper_instance = AsyncMock()
+            MockHelper.return_value = mock_helper_instance
+            mock_helper_instance.create_room = AsyncMock(return_value=mock_room)
+            mock_helper_instance.get_token = AsyncMock(return_value="secret-token")
+
+            with (
+                patch("services.daily_service.settings.debug", False),
+                caplog.at_level(logging.DEBUG, logger="services.daily_service"),
+            ):
+                await create_room()
+
+        assert caplog.records == []
 
     @pytest.mark.asyncio
     async def test_create_room_api_failure(self):
